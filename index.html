@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Improvement Plan</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0e7a74">
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root{color-scheme:light dark;--bg:#f6f7f9;--card:#fff;--ink:#18202c;--muted:#5d6676;--line:#e3e6eb;--accent:#0e7a74;--accent-soft:#e2f2f0;--warn:#b45309;--warn-soft:#fdf1e3;--bad:#b42318;--bad-soft:#fdeceb;--good:#15803d;--good-soft:#e5f5ea;--half:#7c9cbf;}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1318;--card:#171c23;--ink:#e8ecf2;--muted:#9aa4b2;--line:#29313b;--accent:#3cc1b6;--accent-soft:#12302e;--warn:#f0a95b;--warn-soft:#33240f;--bad:#f2867c;--bad-soft:#3a1714;--good:#5fd38a;--good-soft:#11301d;--half:#6e8fb3;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px}
+header h1{font-size:20px;margin:0}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:600}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.counts{display:flex;gap:8px;flex-wrap:wrap}
+nav{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;gap:4px;overflow-x:auto;padding:6px 0 10px;border-bottom:1px solid var(--line);margin-bottom:14px}
+nav button{border:0;background:none;color:var(--muted);font:inherit;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
+nav button.on{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 8px}
+.card h3{font-size:14px;margin:12px 0 6px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;padding:6px 12px;border-radius:8px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.alert{border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:14px}
+.alert.warn{background:var(--warn-soft);color:var(--warn)}
+.alert.bad{background:var(--bad-soft);color:var(--bad)}
+.alert.good{background:var(--good-soft);color:var(--good)}
+.alert.info{background:var(--accent-soft);color:var(--accent)}
+.block{display:grid;grid-template-columns:92px 1fr auto;gap:12px;align-items:start;padding:12px 0;border-top:1px solid var(--line)}
+.block:first-of-type{border-top:0}
+.time{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;padding-top:2px}
+.block .title{font-weight:650}
+.block .detail{margin-top:2px}
+.block .min{font-size:12.5px;color:var(--muted);margin-top:4px}
+.check{min-width:104px;border:1.5px solid var(--line);background:var(--card);color:var(--muted);border-radius:10px;padding:8px 10px;font:inherit;font-weight:600;cursor:pointer}
+.check.s1{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.check.s5{background:var(--accent-soft);border-color:var(--half);color:var(--half)}
+.check.s0{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--card);color:var(--ink);font:inherit;padding:5px 11px;cursor:pointer;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--accent);color:#fff}
+input[type=number],input[type=text],textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+textarea{width:100%;min-height:60px;resize:vertical}
+input.n{width:64px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;color:var(--muted);font-weight:600}
+.lift td{padding:6px 6px}
+.wk{display:grid;grid-template-columns:110px repeat(7,1fr);gap:4px;font-size:13px}
+.wk .h{color:var(--muted);font-weight:600;text-align:center;padding:4px 0}
+.wk .h.today{color:var(--accent)}
+.wk .lbl{font-weight:600;padding:8px 0}
+.cell{border-radius:8px;text-align:center;padding:8px 0;cursor:pointer;border:1px solid var(--line);user-select:none}
+.cell.s1{background:var(--good-soft);color:var(--good);border-color:transparent}
+.cell.s5{background:var(--accent-soft);color:var(--half);border-color:transparent}
+.cell.s0{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.cell.na{cursor:default;color:var(--line);border-style:dashed}
+.big3 label{display:flex;gap:8px;align-items:center;margin:6px 0}
+.big3 input[type=text]{flex:1}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat .v{font-size:22px;font-weight:700}
+.heat{display:grid;grid-template-columns:40px repeat(7,1fr);gap:3px;font-size:11px;max-width:420px}
+.heat div{height:18px;border-radius:4px}
+.heat .lab{height:auto;color:var(--muted)}
+.bar{height:8px;background:var(--line);border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+details{border-top:1px solid var(--line);padding:8px 0}
+summary{cursor:pointer;font-weight:600}
+ul{margin:6px 0;padding-left:20px}
+li{margin:3px 0}
+.hide{display:none}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.xl{border-collapse:collapse;font-size:13px;min-width:100%}
+table.xl th,table.xl td{border:1px solid var(--line);padding:0;height:30px;text-align:center;white-space:nowrap}
+table.xl th{background:var(--bg);position:sticky;top:0;z-index:1;padding:4px 6px;font-weight:600;color:var(--muted)}
+table.xl td.lbl,table.xl th.lbl{position:sticky;left:0;z-index:2;background:var(--card);text-align:left;padding:4px 8px;font-weight:600;color:var(--ink)}
+table.xl th.lbl{background:var(--bg)}
+table.xl th.today{color:var(--accent);background:var(--accent-soft)}
+table.xl td.c{min-width:30px;cursor:pointer;user-select:none}
+table.xl td.c.s1{background:var(--good-soft);color:var(--good)}
+table.xl td.c.s5{background:var(--accent-soft);color:var(--half)}
+table.xl td.c.s0{background:var(--bad-soft);color:var(--bad)}
+table.xl td.c.na{cursor:default;background:repeating-linear-gradient(45deg,transparent 0 4px,var(--line) 4px 5px)}
+table.xl td.tot{font-weight:700;padding:0 8px}
+table.xl input,table.xl select{border:0;background:transparent;border-radius:0;width:100%;height:30px;padding:0 6px}
+table.xl input[type=checkbox]{width:18px;height:18px;accent-color:var(--good)}
+table.goals td{text-align:left}
+table.goals tr.done td{background:var(--good-soft)}
+table.goals tr.done input[type=text]{text-decoration:line-through;color:var(--muted)}
+table.goals tr.late td{background:var(--bad-soft)}
+.pbar{display:flex;align-items:center;gap:6px;padding:0 6px;min-width:120px}
+.pbar .bar{flex:1}
+.tag{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.task{display:flex;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.task.done .tt{text-decoration:line-through;color:var(--muted)}
+.task input[type=checkbox]{width:20px;height:20px;accent-color:var(--good)}
+.task .tt{flex:1}
+.x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px}
+.form{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr auto;gap:6px}
+@media (max-width:620px){.form{grid-template-columns:1fr 1fr}.form input[type=text]{grid-column:1/-1}}
+#syncbtn{display:none}
+@media (max-width:620px){.block{grid-template-columns:1fr;gap:6px}.check{width:100%}.wk{grid-template-columns:70px repeat(7,1fr);font-size:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>Improvement Plan</h1><div class="muted small" id="sub"></div></div>
+  <div class="counts"><span id="counts" class="counts"></span><button class="btn" id="syncbtn" data-act="sync">&#8635; Sync</button></div>
+</header>
+<nav id="tabs">
+  <button data-tab="today" class="on">Today</button>
+  <button data-tab="planner">Planner</button>
+  <button data-tab="tracker">Tracker</button>
+  <button data-tab="week">Week</button>
+  <button data-tab="progress">Progress</button>
+  <button data-tab="plan">Plan &amp; settings</button>
+  <button data-tab="guide">How to</button>
+</nav>
+<main>
+  <section id="today"></section>
+  <section id="planner" class="hide"></section>
+  <section id="tracker" class="hide"></section>
+  <section id="week" class="hide"></section>
+  <section id="progress" class="hide"></section>
+  <section id="plan" class="hide"></section>
+  <section id="guide" class="hide"></section>
+</main>
+</div>
+<script>
+/* ---------- storage ---------- */
+const KEY = 'improvement-plan-v1';
+function fresh(){ return {v:2, settings:{gymTime:'morning', classDays:[], weight:'', driveClientId:'', u:0}, days:{}, weeks:{}, goals:defaultGoals(), tasks:[]}; }
+function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) { if (!s.goals) s.goals = defaultGoals(); if (!s.tasks) s.tasks = []; s.v = 2; return s; } } catch(e){} return fresh(); }
+function saveLocal(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+function save(){ saveLocal(); schedulePush(); }
+const now = () => Date.now();
+const uid = () => now().toString(36) + Math.random().toString(36).slice(2,6);
+
+/* merge two copies (this device + Google Drive): newest change wins per day, week, goal and task */
+function mergeMaps(x, y){ const o = {...(x||{})}; for (const k in (y||{})) if (!o[k] || (y[k].u||0) > (o[k].u||0)) o[k] = y[k]; return o; }
+function mergeLists(x, y){ const m = {}; [...(x||[]), ...(y||[])].forEach(it => { if (!m[it.id] || (it.u||0) > (m[it.id].u||0)) m[it.id] = it; }); return Object.values(m); }
+function merge(a, b){
+ const sa = a.settings || {}, sb = b.settings || {};
+ const settings = (sb.u||0) > (sa.u||0) ? {...sb, driveClientId: sa.driveClientId || sb.driveClientId} : sa;
+ return {v:2, settings, days:mergeMaps(a.days,b.days), weeks:mergeMaps(a.weeks,b.weeks), goals:mergeLists(a.goals,b.goals), tasks:mergeLists(a.tasks,b.tasks)};
+}
+
+/* ---------- Google Drive sync (your own Drive, hidden app folder, no other service) ---------- */
+let token = null, tokenExp = 0, pushTimer = null, syncing = false;
+const DRIVE_NAME = 'improvement-plan.json';
+const hasToken = () => token && now() < tokenExp - 60000;
+function setSyncStatus(t){ const el = document.getElementById('syncstatus'); if (el) el.textContent = t; try { localStorage.setItem(KEY+'-sync', t); } catch(e){} }
+function loadGis(){ return new Promise((res, rej) => { if (window.google && google.accounts && google.accounts.oauth2) return res(); const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.onload = () => res(); s.onerror = () => rej(new Error('Could not load Google sign-in (offline?)')); document.head.appendChild(s); }); }
+async function getToken(interactive){
+ if (hasToken()) return token;
+ if (!interactive) throw new Error('Tap Sync to connect Google Drive');
+ if (!S.settings.driveClientId) throw new Error('Add your Google OAuth client ID in Plan & settings first');
+ await loadGis();
+ return new Promise((res, rej) => {
+   const tc = google.accounts.oauth2.initTokenClient({client_id:S.settings.driveClientId, scope:'https://www.googleapis.com/auth/drive.appdata',
+     callback: r => { if (r.error) return rej(new Error(r.error)); token = r.access_token; tokenExp = now() + (+r.expires_in||3600)*1000; res(token); },
+     error_callback: e => rej(new Error(e && e.type ? e.type : 'Google sign-in was closed'))});
+   tc.requestAccessToken();
+ });
+}
+async function driveFind(t){
+ const q = encodeURIComponent(`name='${DRIVE_NAME}'`);
+ const r = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}&fields=files(id,modifiedTime)`, {headers:{Authorization:'Bearer '+t}});
+ if (!r.ok) throw new Error('Drive list failed ('+r.status+')'); const j = await r.json(); return j.files && j.files[0];
+}
+async function driveRead(t, id){ const r = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, {headers:{Authorization:'Bearer '+t}}); if (!r.ok) throw new Error('Drive read failed ('+r.status+')'); return r.json(); }
+async function driveWrite(t, id, data){
+ const body = JSON.stringify(data);
+ if (id) { const r = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`, {method:'PATCH', headers:{Authorization:'Bearer '+t, 'Content-Type':'application/json'}, body}); if (!r.ok) throw new Error('Drive save failed ('+r.status+')'); return id; }
+ const b = 'b' + now(), meta = {name:DRIVE_NAME, parents:['appDataFolder'], mimeType:'application/json'};
+ const mp = `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${b}--`;
+ const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {method:'POST', headers:{Authorization:'Bearer '+t, 'Content-Type':'multipart/related; boundary='+b}, body:mp});
+ if (!r.ok) throw new Error('Drive create failed ('+r.status+')'); return (await r.json()).id;
+}
+async function syncNow(interactive){
+ if (syncing) return; syncing = true; setSyncStatus('Syncing with Google Drive...');
+ try {
+   const t = await getToken(interactive), f = await driveFind(t);
+   if (f) S = merge(S, await driveRead(t, f.id));
+   await driveWrite(t, f && f.id, S); saveLocal();
+   setSyncStatus('Synced with Google Drive at ' + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}));
+   renderAll();
+ } catch(e) { setSyncStatus('Not synced: ' + e.message); }
+ finally { syncing = false; }
+}
+function schedulePush(){ if (!S.settings.driveClientId || !hasToken() || !navigator.onLine) return; clearTimeout(pushTimer); pushTimer = setTimeout(() => syncNow(false), 4000); }
+async function shareBackup(){
+ const data = JSON.stringify(S, null, 1), name = `improvement-plan-backup-${key(TODAY)}.json`, file = new File([data], name, {type:'application/json'});
+ if (navigator.canShare && navigator.canShare({files:[file]})) { try { await navigator.share({files:[file], title:'Improvement plan backup'}); return; } catch(e){ if (e.name === 'AbortError') return; } }
+ const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; a.click();
+}
+
+/* ---------- dates ---------- */
+const pad = n => String(n).padStart(2,'0');
+const key = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = k => { const [y,m,dd] = k.split('-').map(Number); return new Date(y, m-1, dd); };
+const addDays = (d,n) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate()+n); return x; };
+const dow = d => (d.getDay()+6)%7; // 0 = Monday
+const monday = d => addDays(d, -dow(d));
+const fmt = d => d.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'});
+const fmtLong = d => d.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const START = parse('2026-11-09');
+const weekIndex = d => Math.floor((monday(d) - START) / (7*864e5));
+const daysBetween = (a,b) => Math.round((b - a)/864e5);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- plan data ---------- */
+const PHASES = [
+ {id:'aigp',  from:'2026-11-09', to:'2026-12-18', name:'AIGP sprint',          study:'AIGP exam prep', uni:'restart', french:15},
+ {id:'hol',   from:'2026-12-19', to:'2027-01-03', name:'Holiday reset',        study:null,              uni:'restart', french:30},
+ {id:'thesis',from:'2027-01-04', to:'2027-06-30', name:'Thesis focus',         study:null,              uni:'thesis',  french:30, note:'ISO 42001 course: one week in May, in work time'},
+ {id:'az104', from:'2027-07-01', to:'2027-09-24', name:'Azure AZ-104',         study:'AZ-104',          uni:'defence', french:30},
+ {id:'az305', from:'2027-09-25', to:'2027-12-17', name:'AZ-305 + French B1',   study:'AZ-305',          uni:null,      french:30},
+ {id:'cism',  from:'2027-12-18', to:'2028-04-28', name:'CISM',                 study:'CISM',            uni:null,      french:20},
+ {id:'aaism', from:'2028-04-29', to:'2028-07-31', name:'AAISM',                study:'AAISM',           uni:null,      french:20}
+];
+const phaseFor = d => { const k = key(d); return PHASES.find(p => k >= p.from && k <= p.to) || (k < PHASES[0].from ? PHASES[0] : PHASES[PHASES.length-1]); };
+
+const AIGP = {
+'2026-11-09':'Setup: ask your manager about funding, book the exam for 17/18 Dec, download the Body of Knowledge and handbook',
+'2026-11-10':'Skim the whole Body of Knowledge; mark each topic green, amber or red',
+'2026-11-11':'AI basics: ML types, deep learning, generative AI and LLMs',
+'2026-11-12':'The AI lifecycle and where governance checkpoints sit',
+'2026-11-13':'AI risks and harms: one real example each',
+'2026-11-14':'2h: OECD, UNESCO, Council of Europe principles; governance roles; 25 Domain I questions',
+'2026-11-15':'1.5h: review the week; map the DBG AI Hub and ambassadors to governance roles; redo misses',
+'2026-11-16':'AI Act: structure, Art. 3 definitions, Art. 2 scope, Art. 4 AI literacy',
+'2026-11-17':'AI Act Art. 5: the eight prohibited practices and exceptions',
+'2026-11-18':'High-risk: Art. 6, Annex I and Annex III (credit scoring, employment)',
+'2026-11-19':'High-risk requirements, Arts. 9-15',
+'2026-11-20':'Provider duties (Arts. 16, 43, 72, 73); deployer duties (Art. 26) and FRIA (Art. 27)',
+'2026-11-21':'2h: Art. 50 transparency, GPAI Arts. 51-55, penalties, timeline; 25 questions',
+'2026-11-22':'1.5h: GDPR and AI (Arts. 5, 6, 22, 35); classify your 24 DBG use cases',
+'2026-11-23':'NIST AI RMF: Govern, Map, Measure, Manage and the 7 trustworthiness traits',
+'2026-11-24':'NIST AI 600-1 GenAI Profile: the 12 risks, one example each from your agents',
+'2026-11-25':'ISO/IEC 42001 clauses 4-10 and the AI impact assessment',
+'2026-11-26':'ISO/IEC 42001 Annex A; ISO/IEC 23894 and 22989',
+'2026-11-27':'Laws outside the EU: US (Colorado, NYC LL144, FTC), China, Singapore, Canada, UK',
+'2026-11-28':'2h: product liability, consumer, anti-discrimination, IP; 25 Domain II questions',
+'2026-11-29':'1.5h: write the one-page framework comparison; review the mistakes note',
+'2026-11-30':'Governing development 1: intake, impact assessments, stakeholders',
+'2026-12-01':'Governing development 2: data governance, privacy by design, model cards',
+'2026-12-02':'Testing: bias, robustness, red teaming, release readiness',
+'2026-12-03':'Governing deployment: vendors, contracts, controls, human oversight',
+'2026-12-04':'After go-live: monitoring, incidents, audits, retirement (light day)',
+'2026-12-05':'2h45: PRACTICE TEST 1, timed, exam conditions',
+'2026-12-06':'1.5h: review every wrong answer; rank the four domains',
+'2026-12-07':'Re-study your weakest domain',
+'2026-12-08':'Re-study your second-weakest domain; reread AI Act Arts. 5, 6, 16, 26',
+'2026-12-09':'1h45: PRACTICE TEST 2, timed',
+'2026-12-10':'Review test 2 mistakes',
+'2026-12-11':'20 scenario questions only (read the question before the case)',
+'2026-12-12':'2h45: PRACTICE TEST 3, full and timed',
+'2026-12-13':'1.5h: review test 3; build the one-page cheat sheet',
+'2026-12-14':'Cheat sheet + 25 questions from your weakest domain',
+'2026-12-15':'High-yield AI Act articles and the four NIST functions',
+'2026-12-16':'30 min cheat sheet; OnVUE system test; clear desk, check ID and webcam',
+'2026-12-17':'Rest. Read the cheat sheet once in the evening',
+'2026-12-18':'EXAM DAY: log in 30 minutes early'
+};
+const LATER_STUDY = {
+ 'AZ-104':['Microsoft Learn AZ-104: one module + its lab','Microsoft Learn AZ-104: one module + its lab','Hands-on lab in your own subscription','Microsoft Learn AZ-104: one module + its lab','Recap: 20 practice questions','2h: 40 practice questions + review','1h: review notes, plan next week'],
+ 'AZ-305':['AZ-305 learning path: one module','Design exercise: sketch one architecture','AZ-305 learning path: one module','Case-study questions (10)','Recap: 20 practice questions','2h: 40 practice questions + review','1h: review notes, plan next week'],
+ 'CISM':['CISM Review Manual: one section','25 CISM practice questions + explanations','CISM Review Manual: one section','25 CISM practice questions + explanations','Flashcards: weak domain','2h: 60 practice questions','1h: review mistakes, plan next week'],
+ 'AAISM':['AAISM content: one section','20 practice questions','AAISM content: one section','Map one topic to your DBG work','20 practice questions','2h: practice exam block','1h: review mistakes, plan next week']
+};
+const UNI_W1 = {
+'2026-11-09':'Collect all thesis files, code and notes into one folder',
+'2026-11-10':'Write a 1-page status: done, missing, open questions',
+'2026-11-11':'Email your supervisor: ask for a meeting, propose submitting by 30 Jun 2027',
+'2026-11-12':'Rebuild the Python environment; run the old code once',
+'2026-11-13':'List the 10 most important papers on LLM bug detection',
+'2026-11-14':'Read one paper (abstract, method, results); 5-line note',
+'2026-11-15':'Weekly review: pick next week\'s 3 thesis tasks'
+};
+const UNI_ROT = {
+ restart:['Read: one paper or section, 5-line summary','Code: get one experiment step running; log the result','Write: 300 words (outline or related work)','Code: next experiment step; commit with a clear message','Write: 300 words; tidy references','Deep block: the hardest thesis task of the week','Weekly thesis review + plan next week'],
+ thesis:['Read: one paper or section, 5-line summary','Experiment: run, log, compare to baseline','Write: 400 words','Experiment: next run or ablation','Write: 400 words; update figures','Deep block: the hardest thesis task of the week','Weekly thesis review + send progress to supervisor every 2nd week'],
+ defence:['Defence prep: outline the talk','Slides: 3 slides','Slides: 3 slides','Rehearse 10 minutes out loud','Fix weak slides','Full rehearsal, timed','Rest or review']
+};
+const WORKOUTS = {
+ upperA:{name:'Upper A (strength)', ex:[['bench','Bench press',3,6,8,2.5],['row','Barbell row',3,8,10,2.5],['ohp','Overhead press',3,8,10,2.5],['pulldown','Lat pulldown',3,10,12,2.5],['lateral','Lateral raise',2,12,15,1],['pushdown','Triceps pushdown',2,10,12,2.5],['curl','Biceps curl',2,10,12,1]]},
+ lowerA:{name:'Lower A (strength)', ex:[['squat','Back squat',3,5,8,5],['rdl','Romanian deadlift',3,8,10,5],['legpress','Leg press',2,10,12,10],['legcurl','Leg curl',2,10,12,2.5],['calf','Calf raise',3,12,15,5],['plank','Plank (seconds in reps box)',3,45,60,0]]},
+ zone2:{name:'Zone 2 cardio + mobility', cardio:'40 min bike, incline walk or rower at a pace where you can still talk in full sentences, then 15 min mobility (hips, upper back, shoulders).'},
+ upperB:{name:'Upper B (volume)', ex:[['incline','Incline dumbbell press (per hand)',3,8,10,2],['pullup','Pull-up (use assistance if needed)',3,6,10,2.5],['dbpress','Seated dumbbell shoulder press (per hand)',3,10,12,2],['csrow','Chest-supported row',3,10,12,2.5],['facepull','Face pull',2,15,20,2.5],['arms','Curl + pushdown superset',2,12,15,1]]},
+ lowerB:{name:'Lower B (volume)', ex:[['deadlift','Deadlift (trap bar or conventional)',3,4,6,5],['bss','Bulgarian split squat (per hand)',3,8,10,2],['thrust','Hip thrust',3,8,10,5],['legext','Leg extension',2,12,15,2.5],['calf2','Calf raise',3,12,15,5],['knee','Hanging knee raise',3,10,15,0]]},
+ swim:{name:'Swim', cardio:'45-60 min: 300 m easy, 6 x 100 m steady (20 s rest), 4 x 50 m fast, 200 m easy. Technique first; your competition background is an advantage here.'},
+ walk:{name:'Active recovery', cardio:'30-45 min walk outside + 10 min stretching. Rest is part of the plan.'}
+};
+const GYM_BY_DOW = ['upperA','lowerA','zone2','upperB','lowerB','swim','walk'];
+const BIG3 = {
+'2026-11-09':['Book the AIGP exam and ask for funding','Restart the thesis: status page + supervisor email','4 lifting sessions + 1 swim'],
+'2026-11-16':['Finish the EU AI Act week','Thesis: environment runs the old baseline','Log every lift'],
+'2026-11-23':['Write the one-page framework comparison','Thesis: read 2 papers with notes','6 activity days'],
+'2026-11-30':['Practice test 1 done and reviewed','Thesis outline v1','Gym: beat 2 lifts from week 1'],
+'2026-12-07':['80%+ on practice test 3','Related-work draft: 1 page','5 gym sessions'],
+'2026-12-14':['Pass AIGP','Agree the January thesis plan with your supervisor','Deload week: easy gym, 8h sleep'],
+'2026-12-21':['Rest properly','Thesis: experiment plan for January','French: finish the A1 review'],
+'2026-12-28':['Plan 2027 Q1 in this page','Thesis: first experiment run','Gym: back to the full program']
+};
+const BIG3_PHASE = {
+ aigp:['AIGP: finish this week\'s plan','Thesis: one visible output','Gym: 5 sessions'],
+ hol:['Rest','Thesis: one visible output','French: 30 min a day'],
+ thesis:['Thesis: 1,200 words or one finished experiment','French: 6 of 7 days','Gym: 5 sessions'],
+ az104:['AZ-104: 4 modules + labs','Thesis defence: one rehearsal','Gym: 5 sessions'],
+ az305:['AZ-305: 3 modules','French B1: one DELF practice section','Gym: 5 sessions'],
+ cism:['CISM: 100 practice questions','French: keep 20 min a day','Gym: 5 sessions'],
+ aaism:['AAISM: 80 practice questions','French: one conversation','Gym: 5 sessions']
+};
+const HNAME = {gym:'Gym', study:'Exam study', uni:'Uni (thesis)', french:'French'};
+
+/* goals sheet: the whole roadmap as tickable rows; three rows fill themselves from your daily checks */
+const GOAL_SEED = [
+ ['Career','Ask your manager to fund AIGP and ISO 42001','2026-11-13'],
+ ['AIGP','Book the AIGP exam (17 or 18 Dec)','2026-11-13'],
+ ['AIGP','Complete the 40-day AIGP study plan','2026-12-18','aigp',40],
+ ['AIGP','Pass AIGP','2026-12-18'],
+ ['Thesis','Agree thesis scope and submission date with supervisor','2027-01-08'],
+ ['Career','Add AIGP to CV and LinkedIn','2027-01-15'],
+ ['French','Pass INL A1','2027-01-31'],
+ ['Cert','Book the ISO 42001 Lead Implementer course (employer-funded)','2027-03-15'],
+ ['Thesis','Literature review and experiment setup done','2027-03-31'],
+ ['Cert','ISO 42001 Lead Implementer exam','2027-05-31'],
+ ['Thesis','Submit the thesis','2027-06-30'],
+ ['French','Pass INL A2','2027-06-30'],
+ ['Cert','AZ-104 exam','2027-09-24'],
+ ['Thesis','Thesis defence','2027-09-30'],
+ ['French','Register for DELF B1 (December session)','2027-09-30'],
+ ['Cert','AZ-305 exam (Azure Solutions Architect Expert)','2027-12-10'],
+ ['French','Pass DELF B1','2027-12-31'],
+ ['Fitness','200 gym sessions','2027-12-31','gym',200],
+ ['French','300 French practice days','2027-12-31','french',300],
+ ['Cert','CISM exam','2028-04-28'],
+ ['Cert','AAISM exam','2028-07-28']
+];
+function defaultGoals(){ return GOAL_SEED.map((g,i) => ({id:'g'+(i+1), area:g[0], t:g[1], due:g[2], auto:g[3]||null, target:g[4]||null, status:'Not started', pct:0, done:false, u:0})); }
+const AREAS = ['AIGP','Cert','Thesis','French','Fitness','Career','Personal'];
+const STATUSES = ['Not started','In progress','Done'];
+function goalPct(g){
+ if (g.done) return 100;
+ if (g.auto) {
+   const n = g.auto === 'aigp' ? Object.keys(AIGP).filter(k => (peekDay(k).checks.study||0) > 0).length
+           : Object.keys(S.days).filter(k => k >= '2026-11-09' && (S.days[k].checks[g.auto]||0) > 0).length;
+   return Math.min(100, Math.round(100*n/g.target));
+ }
+ return g.status === 'Done' ? 100 : (+g.pct || 0);
+}
+function goalCount(g){ if (!g.auto) return ''; const n = Math.round(goalPct(g)*g.target/100); return ` (${n}/${g.target})`; }
+
+/* planner tasks: one-off, daily or weekly */
+const CATS = ['Study','Uni','Gym','French','Work','Personal'];
+const occursOn = (t, k) => !t.del && (t.date === k || (t.repeat === 'daily' && k >= t.date) || (t.repeat === 'weekly' && k >= t.date && dow(parse(k)) === dow(parse(t.date))));
+const tasksOn = k => S.tasks.filter(t => occursOn(t,k)).sort((a,b) => (a.time||'99').localeCompare(b.time||'99'));
+const taskDone = (t, k) => !!(t.doneOn && t.doneOn[k]);
+
+let S = load();
+
+/* ---------- day model ---------- */
+function getDay(k){ return S.days[k] || (S.days[k] = {checks:{}, lifts:{}, sleep:'', energy:0, note:''}); }
+function peekDay(k){ return S.days[k] || {checks:{}, lifts:{}}; }
+const isDeload = d => weekIndex(d) >= 0 && weekIndex(d) % 6 === 5;
+
+function times(d){
+ const wd = dow(d), morning = S.settings.gymTime !== 'evening';
+ if (wd === 5) return {gym:'09:00', study:'10:30', uni:'14:00', french:'16:00'};
+ if (wd === 6) return {gym:'10:00', study:'11:00', uni:'14:00', french:'16:00'};
+ return morning ? {gym:'06:30', study:'19:00', uni:'20:15', french:'08:00'} : {gym:'18:00', study:'19:30', uni:'20:45', french:'08:00'};
+}
+function frenchTask(d, p){
+ const wd = dow(d);
+ if ((S.settings.classDays||[]).includes(wd)) return {t:'INL class + homework the same evening', m:p.french};
+ if (p.french <= 15) return {t:'10 min Anki vocabulary + 5 min listening', m:15};
+ if (wd === 5) return {t:'TV5Monde lesson at your level + grammar review', m:45};
+ if (wd === 6) return {t:'Conversation (tutor or tandem) or a graded reader', m:30};
+ return {t:'10 min Anki, 10 min listening, 10 min writing 3-5 sentences read aloud', m:p.french};
+}
+function studyTask(d, p){
+ const k = key(d);
+ if (p.id === 'aigp') return AIGP[k] || 'Plan starts Monday 9 Nov. Read the "How to" tab.';
+ const list = LATER_STUDY[p.study]; return list ? list[dow(d)] : '';
+}
+function uniTask(d, p){
+ const k = key(d);
+ if (UNI_W1[k]) return UNI_W1[k];
+ const rot = UNI_ROT[p.uni]; return rot ? rot[dow(d)] : '';
+}
+function habitsFor(d){
+ const p = phaseFor(d), t = times(d), wd = dow(d), g = WORKOUTS[GYM_BY_DOW[wd]], list = [];
+ const studyMins = p.id === 'aigp' ? (wd === 5 ? 120 : wd === 6 ? 90 : 60) : (wd === 5 ? 120 : 60);
+ if (key(d) === '2026-12-18') {
+   list.push({id:'study', time:'Exam', title:'AIGP EXAM', detail:'Log in 30 minutes early. About 1.5 min per question; flag and come back.', min:'You prepared. Trust it.'});
+   list.push({id:'gym', time:'Evening', title:'Gym: easy walk to celebrate', detail:'30-45 min walk.', min:'10 min walk'});
+   return list;
+ }
+ list.push({id:'gym', time:t.gym, title:`Gym: ${g.name}${isDeload(d) && g.ex ? ' (deload week)' : ''}`, detail: g.ex ? (isDeload(d) ? 'Deload: 2 sets per exercise, same weights, stop 3 reps before failure.' : '8 min warm-up, the lifts below, 5 min cool-down.') : g.cardio, min:'Minimum: 20-min full-body circuit or a 30-min brisk walk', workout: g.ex ? GYM_BY_DOW[wd] : null});
+ if (p.study) list.push({id:'study', time:t.study, title:`${p.study} (${studyMins} min)`, detail:studyTask(d,p), min:'Minimum: one 25-min block on today\'s topic'});
+ if (p.uni) list.push({id:'uni', time:p.study ? t.uni : t.study, title:'Uni: thesis (60 min)', detail:uniTask(d,p), min:'Minimum: 25 min that ends in one visible output (a paragraph, a commit, a note)'});
+ const f = frenchTask(d,p);
+ list.push({id:'french', time:t.french, title:`French (${f.m} min)`, detail:f.t, min:'Minimum: 5 min of Anki'});
+ return list;
+}
+const planned = (d, h) => habitsFor(d).some(x => x.id === h);
+function dayScore(d){
+ const hs = habitsFor(d), c = peekDay(key(d)).checks; if (!hs.length) return null;
+ return hs.reduce((a,h) => a + (c[h.id] || 0), 0) / hs.length;
+}
+
+/* ---------- smart logic ---------- */
+function liftHistory(exId, beforeKey){
+ return Object.keys(S.days).filter(k => k < beforeKey && S.days[k].lifts && S.days[k].lifts[exId] && S.days[k].lifts[exId].some(s => s && +s.w > 0)).sort();
+}
+function suggestion(ex, k){
+ const [id,, sets, lo, hi, inc] = ex, hist = liftHistory(id, k);
+ if (!hist.length) return `Start light: a weight you can lift for ${lo} reps with 2 left in the tank`;
+ const last = S.days[hist[hist.length-1]].lifts[id].filter(s => s && +s.w > 0), w = Math.max(...last.map(s => +s.w));
+ const allTop = last.length >= Math.min(sets,2) && last.every(s => +s.r >= hi);
+ if (inc === 0) return allTop ? `Last: ${w}. Add 2-3 reps or seconds` : `Last: ${w}. Match it, aim for +1 rep`;
+ return allTop ? `Last: ${w} kg, all sets at ${hi}+. Go ${+(w+inc).toFixed(1)} kg` : `Last: ${w} kg. Stay at ${w} kg, beat your reps`;
+}
+function readiness(day){
+ const sl = parseFloat(day.sleep), en = day.energy;
+ if (!sl && !en) return null;
+ if ((sl && sl < 6) || (en && en <= 2)) return {c:'warn', t:'Low readiness. Swap today\'s lift for Zone 2 or the minimum version, and do your study as one 25-min block on the hardest item. Go to bed 30 min earlier tonight.'};
+ if (sl >= 7.5 && en >= 4) return {c:'good', t:'Green light: go for a rep PR on your first lift and do the hardest study task first.'};
+ return {c:'info', t:'Normal day: follow the plan as written.'};
+}
+function missedYesterday(d){
+ const y = addDays(d,-1), yk = key(y), out = [];
+ if (y < START) return out;
+ habitsFor(y).forEach(h => { if (planned(d, h.id) && !(peekDay(yk).checks[h.id] > 0)) out.push(HNAME[h.id] || h.id); });
+ return out;
+}
+function streak(h){
+ let d = new Date(TODAY), n = 0;
+ if (!(peekDay(key(d)).checks[h] > 0)) d = addDays(d,-1);
+ for (let i = 0; i < 400 && d >= START; i++){
+   if (planned(d,h)) { if (peekDay(key(d)).checks[h] > 0) n++; else break; }
+   d = addDays(d,-1);
+ }
+ return n;
+}
+function weekStats(mon){
+ const out = {}; let sleepSum = 0, sleepN = 0, misses = 0;
+ for (let i = 0; i < 7; i++){
+   const d = addDays(mon,i); if (d > TODAY) break; if (d < START) continue;
+   const day = peekDay(key(d));
+   habitsFor(d).forEach(h => { const o = out[h.id] || (out[h.id] = {done:0, n:0}); o.n++; o.done += (day.checks[h.id] || 0); });
+   if (parseFloat(day.sleep)) { sleepSum += parseFloat(day.sleep); sleepN++; }
+   if (d > START) misses += missedYesterday(d).filter(x => !(day.checks[Object.keys(HNAME).find(k => HNAME[k] === x)] > 0)).length;
+ }
+ return {h:out, sleep: sleepN ? sleepSum/sleepN : null, misses};
+}
+function insights(mon){
+ const cur = weekStats(mon), prev = weekStats(addDays(mon,-7)), tips = [];
+ Object.entries(cur.h).forEach(([h,o]) => {
+   const pct = o.n ? Math.round(100*o.done/o.n) : 0, pp = prev.h[h] && prev.h[h].n ? Math.round(100*prev.h[h].done/prev.h[h].n) : null, nm = HNAME[h];
+   if (pct < 60) tips.push({c:'bad', t:`${nm}: ${pct}%. Make it smaller and fixed: commit only to the minimum version at the same time every day for one week, or move it earlier in the day.`});
+   else if (pct >= 90 && pp !== null && pp >= 90) tips.push({c:'good', t:`${nm}: ${pct}% two weeks running. Level up: ${{gym:'add one set to your first lift', study:'add one extra 25-min block on Saturday', uni:'raise the writing target by 100 words', french:'add 5 min of speaking out loud'}[h]}.`});
+   else if (pct < 85) tips.push({c:'warn', t:`${nm}: ${pct}%. Keep the slot and remove one friction point (bag packed the night before, study file open before dinner, phone in another room).`});
+   else tips.push({c:'good', t:`${nm}: ${pct}%. Keep going.`});
+ });
+ if (cur.sleep !== null && cur.sleep < 7) tips.push({c:'warn', t:`Sleep averaged ${cur.sleep.toFixed(1)}h. Start winding down 30 minutes earlier; it lifts every other habit.`});
+ if (cur.misses > 0) tips.push({c:'warn', t:`You missed something two days in a row ${cur.misses} time(s). Rule: never miss twice. After a miss, the next day is a minimum-version day at least.`});
+ return tips;
+}
+function weekData(mon){
+ const mk = key(mon);
+ if (!S.weeks[mk]) { const def = BIG3[mk] || BIG3_PHASE[phaseFor(mon).id]; S.weeks[mk] = {big3:def.map(t => ({t, done:false})), review:{wins:'', block:'', change:''}}; }
+ return S.weeks[mk];
+}
+
+/* ---------- render: header ---------- */
+let viewDate = new Date(TODAY), weekView = monday(TODAY), tab = 'today';
+function renderHeader(){
+ const p = phaseFor(TODAY), exam = parse('2026-12-18'), delf = parse('2027-12-01');
+ document.getElementById('sub').textContent = `${fmtLong(TODAY)} · Phase: ${p.name}`;
+ const c = [];
+ if (TODAY <= exam) c.push(`<span class="pill">AIGP exam in ${daysBetween(TODAY,exam)} days</span>`);
+ c.push(`<span class="pill">DELF B1 in ~${Math.round(daysBetween(TODAY,delf)/30)} months</span>`);
+ if (isDeload(TODAY)) c.push('<span class="pill warn">Deload week</span>');
+ document.getElementById('counts').innerHTML = c.join('');
+}
+
+/* ---------- render: today ---------- */
+const stateLabel = v => v === 1 ? 'Done' : v === 0.5 ? 'Minimum' : v === 0 ? 'Skipped' : 'Mark done';
+const stateClass = v => v === 1 ? 's1' : v === 0.5 ? 's5' : v === 0 ? 's0' : '';
+function renderToday(){
+ const d = viewDate, k = key(d), day = getDay(k), hs = habitsFor(d), p = phaseFor(d);
+ let h = `<div class="card"><div class="spread"><div><h2 style="margin:0">${fmtLong(d)}</h2><div class="muted small">${esc(p.name)}${weekIndex(d) >= 0 ? ` · week ${weekIndex(d)+1}` : ''}${p.note ? ` · ${esc(p.note)}` : ''}</div></div>
+ <div class="row"><button class="btn" data-nav="-1">&larr;</button><button class="btn" data-nav="0">Today</button><button class="btn" data-nav="1">&rarr;</button></div></div></div>`;
+ const alerts = [];
+ if (d < START) alerts.push({c:'info', t:'The plan starts on Monday 9 November. Today: read the "How to" tab, pack your gym bag, set up Anki, and put your study blocks in your calendar.'});
+ const miss = key(d) === key(TODAY) ? missedYesterday(d) : [];
+ if (miss.length) alerts.push({c:'bad', t:`Never miss twice: you missed ${miss.join(', ')} yesterday. Today at least the minimum version.`});
+ if (isDeload(d)) alerts.push({c:'warn', t:'Deload week for the gym: 2 sets per exercise, same weights. You recover and come back stronger.'});
+ if (p.id === 'aigp' && d >= START) {
+   const keys = Object.keys(AIGP).filter(x => x < key(TODAY)), done = keys.filter(x => (peekDay(x).checks.study || 0) > 0).length;
+   if (keys.length) { const behind = keys.length - done; alerts.push(behind > 1 ? {c:'warn', t:`AIGP pace: ${done} of ${keys.length} study days done so far. You're ${behind} days behind; use Saturday's 2h block to catch up the most important one.`} : {c:'good', t:`AIGP pace: ${done} of ${keys.length} study days done. On track.`}); }
+ }
+ const r = readiness(day); if (r) alerts.push(r);
+ h += alerts.map(a => `<div class="alert ${a.c}">${esc(a.t)}</div>`).join('');
+ h += `<div class="card"><h2>Check-in</h2><div class="row small"><label>Sleep last night <input class="n" type="number" step="0.25" min="0" max="14" data-f="sleep" value="${esc(day.sleep)}"> h</label>
+ <span>Energy</span><div class="seg">${[1,2,3,4,5].map(n => `<button data-energy="${n}" class="${day.energy === n ? 'on' : ''}">${n}</button>`).join('')}</div></div></div>`;
+ h += `<div class="card"><h2>Today's plan</h2>`;
+ hs.forEach(x => {
+   const v = day.checks[x.id];
+   h += `<div class="block"><div class="time">${esc(x.time)}</div><div><div class="title">${esc(x.title)}</div><div class="detail">${esc(x.detail)}</div><div class="min">${esc(x.min)}</div></div>
+   <button class="check ${stateClass(v)}" data-check="${x.id}">${stateLabel(v)}</button></div>`;
+   if (x.workout) h += workoutTable(x.workout, k, isDeload(d));
+ });
+ h += `<p class="muted small">Tap a button to cycle: Done, Minimum version (counts half), Skipped.</p></div>`;
+ const tl = tasksOn(k);
+ h += `<div class="card"><div class="spread"><h2 style="margin:0">Your planner tasks</h2><button class="btn" data-goto="planner">+ Add</button></div>${tl.length ? tl.map(t => taskRow(t,k)).join('') : '<p class="muted small">Nothing extra planned for this day.</p>'}</div>`;
+ const wk = weekData(monday(d));
+ h += `<div class="card"><h2>This week's Big 3</h2><div class="muted small">The 2-3 results that make this week a win.</div>${wk.big3.map((b,i) => `<div>${b.done ? '&#10003;' : '&#9675;'} ${esc(b.t)}</div>`).join('')}</div>`;
+ h += `<div class="card"><h2>Note</h2><textarea data-f="note" placeholder="One line: what worked, what got in the way">${esc(day.note)}</textarea></div>`;
+ document.getElementById('today').innerHTML = h;
+}
+function workoutTable(wid, k, deload){
+ const w = WORKOUTS[wid], day = getDay(k);
+ let h = `<table class="lift"><tr><th>Exercise</th><th>Target</th><th>Sets (kg &times; reps)</th></tr>`;
+ w.ex.forEach(ex => {
+   const [id, name, sets, lo, hi] = ex, n = deload ? 2 : sets, log = (day.lifts[id] || []);
+   h += `<tr><td><b>${esc(name)}</b><div class="muted small">${esc(suggestion(ex,k))}</div></td><td>${n} &times; ${lo}-${hi}</td><td>`;
+   for (let i = 0; i < n; i++){ const s = log[i] || {}; h += `<div class="row" style="gap:4px;margin-bottom:4px"><input class="n" type="number" step="0.5" placeholder="kg" data-lift="${id}" data-i="${i}" data-k="w" value="${esc(s.w)}">&times;<input class="n" type="number" placeholder="reps" data-lift="${id}" data-i="${i}" data-k="r" value="${esc(s.r)}"></div>`; }
+   h += `</td></tr>`;
+ });
+ return h + `</table>`;
+}
+
+/* ---------- render: planner ---------- */
+function taskRow(t, k){
+ const dn = taskDone(t,k);
+ return `<div class="task ${dn ? 'done' : ''}"><input type="checkbox" data-tdone="${t.id}" data-k="${k}" ${dn ? 'checked' : ''}><span class="time">${esc(t.time || '')}</span><span class="tt">${esc(t.t)}${t.repeat && t.repeat !== 'none' ? ` <span class="muted small">(${t.repeat})</span>` : ''}</span><span class="tag">${esc(t.cat)}</span><button class="x" title="Delete" data-tdel="${t.id}">&times;</button></div>`;
+}
+let plannerDays = 14;
+function renderPlanner(){
+ let h = `<div class="card"><h2>Add to your planner</h2><div class="form">
+ <input type="text" id="p-t" placeholder="What? e.g. Call supervisor, meal prep, INL homework">
+ <input type="date" id="p-d" value="${key(viewDate)}"><input type="time" id="p-tm">
+ <select id="p-c">${CATS.map(c => `<option>${c}</option>`).join('')}</select>
+ <select id="p-r"><option value="none">Once</option><option value="daily">Daily</option><option value="weekly">Weekly</option></select>
+ <button class="btn primary" data-act="addtask">Add</button></div></div>`;
+ const late = [];
+ S.tasks.filter(t => !t.del && (!t.repeat || t.repeat === 'none') && t.date < key(TODAY) && !taskDone(t, t.date)).forEach(t => late.push(t));
+ if (late.length) h += `<div class="card"><h2 style="color:var(--bad)">Overdue</h2>${late.map(t => taskRow(t, t.date).replace('<span class="time">', `<span class="time">${fmt(parse(t.date))} `)).join('')}</div>`;
+ h += `<div class="card"><div class="spread"><h2 style="margin:0">Next ${plannerDays} days</h2><div class="seg">${[7,14,30].map(n => `<button data-pdays="${n}" class="${plannerDays === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>`;
+ for (let i = 0; i < plannerDays; i++){
+   const d = addDays(TODAY, i), k = key(d), tl = tasksOn(k), hs = habitsFor(d), hd = hs.filter(x => (peekDay(k).checks[x.id]||0) > 0).length;
+   h += `<h3>${i === 0 ? 'Today, ' : i === 1 ? 'Tomorrow, ' : ''}${fmt(d)} <span class="muted small" style="font-weight:400">· plan ${hd}/${hs.length} · ${hs.map(x => esc(x.title.split(':')[0].split(' (')[0])).join(', ')}</span></h3>`;
+   h += tl.length ? tl.map(t => taskRow(t,k)).join('') : '<div class="muted small" style="padding:4px 0">No extra tasks</div>';
+ }
+ h += `</div>`;
+ document.getElementById('planner').innerHTML = h;
+}
+
+/* ---------- render: tracker (spreadsheet style) ---------- */
+let trackMonth = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), goalFilter = 'open';
+function renderTracker(){
+ const gs = S.goals.filter(g => !g.del).sort((a,b) => a.due.localeCompare(b.due));
+ const done = gs.filter(g => goalPct(g) >= 100).length, avg = gs.length ? Math.round(gs.reduce((a,g) => a + goalPct(g), 0)/gs.length) : 0;
+ const next = gs.find(g => goalPct(g) < 100);
+ let h = `<div class="card"><div class="spread"><h2 style="margin:0">Goals tracker</h2><div class="seg">${['open','all','done'].map(f => `<button data-gfilter="${f}" class="${goalFilter === f ? 'on' : ''}">${f[0].toUpperCase()+f.slice(1)}</button>`).join('')}</div></div>
+ <div class="grid" style="margin:10px 0"><div class="stat"><div class="muted small">Goals reached</div><div class="v">${done} / ${gs.length}</div></div><div class="stat"><div class="muted small">Overall progress</div><div class="v">${avg}%</div><div class="bar"><i style="width:${avg}%"></i></div></div><div class="stat"><div class="muted small">Next goal</div><div style="font-weight:650">${next ? esc(next.t) : 'All done'}</div><div class="muted small">${next ? 'due ' + fmt(parse(next.due)) : ''}</div></div></div>
+ <div class="scroll"><table class="xl goals"><tr><th>&#10003;</th><th class="lbl">Goal</th><th>Area</th><th>Due</th><th>Status</th><th>Progress</th><th></th></tr>`;
+ gs.filter(g => goalFilter === 'all' || (goalFilter === 'done' ? goalPct(g) >= 100 : goalPct(g) < 100)).forEach(g => {
+   const p = goalPct(g), late = p < 100 && g.due < key(TODAY);
+   h += `<tr class="${p >= 100 ? 'done' : late ? 'late' : ''}"><td style="text-align:center"><input type="checkbox" data-gdone="${g.id}" ${g.done ? 'checked' : ''}></td>
+   <td class="lbl" style="min-width:300px;padding:0"><input type="text" data-gid="${g.id}" data-gf="t" value="${esc(g.t)}"></td>
+   <td><select data-gid="${g.id}" data-gf="area">${AREAS.map(a => `<option ${a === g.area ? 'selected' : ''}>${a}</option>`).join('')}</select></td>
+   <td><input type="date" data-gid="${g.id}" data-gf="due" value="${esc(g.due)}"></td>
+   <td>${g.auto ? `<span class="small" style="padding:0 6px">${p >= 100 ? 'Done' : p > 0 ? 'In progress' : 'Not started'}</span>` : `<select data-gid="${g.id}" data-gf="status">${STATUSES.map(s => `<option ${s === (g.done ? 'Done' : g.status) ? 'selected' : ''}>${s}</option>`).join('')}</select>`}</td>
+   <td><div class="pbar"><div class="bar"><i style="width:${p}%"></i></div>${g.auto ? `<span class="small">${p}%${goalCount(g)}</span>` : `<input type="number" min="0" max="100" step="10" style="width:56px" data-gid="${g.id}" data-gf="pct" value="${p}">%`}</div></td>
+   <td><button class="x" title="Delete" data-gdel="${g.id}">&times;</button></td></tr>`;
+ });
+ h += `</table></div><div class="row" style="margin-top:10px"><button class="btn" data-act="addgoal">+ Add goal</button><span class="muted small">Tick a goal when you reach it. Rows with a count fill themselves from your daily checks. Red rows are past their due date.</span></div></div>`;
+
+ const y = trackMonth.getFullYear(), m = trackMonth.getMonth(), n = new Date(y, m+1, 0).getDate();
+ h += `<div class="card"><div class="spread"><h2 style="margin:0">Habit sheet: ${trackMonth.toLocaleDateString('en-GB',{month:'long', year:'numeric'})}</h2><div class="row"><button class="btn" data-mnav="-1">&larr;</button><button class="btn" data-mnav="0">This month</button><button class="btn" data-mnav="1">&rarr;</button></div></div>
+ <div class="scroll" style="margin-top:10px"><table class="xl"><tr><th class="lbl">Habit</th>`;
+ for (let i = 1; i <= n; i++){ const d = new Date(y,m,i); h += `<th class="${key(d) === key(TODAY) ? 'today' : ''}">${DOW[dow(d)][0]}<br>${i}</th>`; }
+ h += `<th>%</th></tr>`;
+ ['gym','study','uni','french'].forEach(id => {
+   let sum = 0, cnt = 0; h += `<tr><td class="lbl">${HNAME[id]}</td>`;
+   for (let i = 1; i <= n; i++){
+     const d = new Date(y,m,i), k = key(d);
+     if (!planned(d,id) || d < START) { h += `<td class="c na"></td>`; continue; }
+     const v = peekDay(k).checks[id]; if (d <= TODAY) { cnt++; sum += v || 0; }
+     h += `<td class="c ${stateClass(v)}" data-cell="${id}" data-k="${k}">${v === 1 ? '&#10003;' : v === 0.5 ? '&frac12;' : v === 0 ? '&times;' : ''}</td>`;
+   }
+   h += `<td class="tot">${cnt ? Math.round(100*sum/cnt) + '%' : '-'}</td></tr>`;
+ });
+ let sOk = 0, sN = 0; h += `<tr><td class="lbl">Sleep 7h+</td>`;
+ for (let i = 1; i <= n; i++){ const sl = parseFloat(peekDay(key(new Date(y,m,i))).sleep); if (sl) { sN++; if (sl >= 7) sOk++; } h += `<td class="c ${sl ? (sl >= 7 ? 's1' : 's0') : ''}" style="cursor:default">${sl ? (sl >= 7 ? '&#10003;' : '&times;') : ''}</td>`; }
+ h += `<td class="tot">${sN ? Math.round(100*sOk/sN) + '%' : '-'}</td></tr>`;
+ let tD = 0, tN = 0; h += `<tr><td class="lbl">Planner tasks</td>`;
+ for (let i = 1; i <= n; i++){ const k = key(new Date(y,m,i)), tl = tasksOn(k), dn = tl.filter(t => taskDone(t,k)).length; tD += dn; tN += tl.length; h += `<td class="c" style="cursor:default;font-size:11px">${tl.length ? dn + '/' + tl.length : ''}</td>`; }
+ h += `<td class="tot">${tN ? Math.round(100*tD/tN) + '%' : '-'}</td></tr>`;
+ h += `<tr><td class="lbl">Day score</td>`;
+ for (let i = 1; i <= n; i++){ const d = new Date(y,m,i); if (d > TODAY || d < START) { h += `<td></td>`; continue; } const s = Math.round(100*(dayScore(d)||0)); h += `<td class="c ${s >= 75 ? 's1' : s >= 40 ? 's5' : 's0'}" style="cursor:default;font-size:11px">${s}</td>`; }
+ h += `<td></td></tr></table></div><p class="muted small">Tap a cell to tick it: &#10003; done, &frac12; minimum version, &times; skipped. Striped cells aren't planned that day.</p></div>`;
+ document.getElementById('tracker').innerHTML = h;
+}
+
+/* ---------- render: week ---------- */
+function renderWeek(){
+ const mon = weekView, wk = weekData(mon), ids = ['gym','study','uni','french'];
+ let h = `<div class="card"><div class="spread"><h2 style="margin:0">Week of ${fmt(mon)}</h2><div class="row"><button class="btn" data-wnav="-1">&larr;</button><button class="btn" data-wnav="0">This week</button><button class="btn" data-wnav="1">&rarr;</button></div></div></div>`;
+ h += `<div class="card"><h2>Big 3 for this week</h2><div class="big3">${wk.big3.map((b,i) => `<label><input type="checkbox" data-b3="${i}" ${b.done ? 'checked' : ''}><input type="text" data-b3t="${i}" value="${esc(b.t)}"></label>`).join('')}</div></div>`;
+ h += `<div class="card"><h2>Habits</h2><div class="wk"><div></div>${DOW.map((n,i) => `<div class="h ${key(addDays(mon,i)) === key(TODAY) ? 'today' : ''}">${n}<br>${addDays(mon,i).getDate()}</div>`).join('')}`;
+ ids.forEach(id => {
+   h += `<div class="lbl">${HNAME[id]}</div>`;
+   for (let i = 0; i < 7; i++){
+     const d = addDays(mon,i), k = key(d);
+     if (!planned(d,id)) { h += `<div class="cell na">&ndash;</div>`; continue; }
+     const v = peekDay(k).checks[id];
+     h += `<div class="cell ${stateClass(v)}" data-cell="${id}" data-k="${k}">${v === 1 ? '&#10003;' : v === 0.5 ? '&frac12;' : v === 0 ? '&times;' : '&middot;'}</div>`;
+   }
+ });
+ h += `</div>`;
+ const st = weekStats(mon), tot = Object.values(st.h).reduce((a,o) => [a[0]+o.done, a[1]+o.n], [0,0]);
+ h += `<p class="small muted">Week score so far: <b>${tot[1] ? Math.round(100*tot[0]/tot[1]) : 0}%</b>${st.sleep ? ` · average sleep ${st.sleep.toFixed(1)}h` : ''}</p></div>`;
+ const tips = insights(mon);
+ h += `<div class="card"><h2>Smart review</h2>${tips.length ? tips.map(t => `<div class="alert ${t.c}">${esc(t.t)}</div>`).join('') : '<p class="muted">Check off a few days and the review fills in.</p>'}
+ <h3>Sunday review (15 minutes)</h3>
+ <label class="small">What went well?<textarea data-rv="wins">${esc(wk.review.wins)}</textarea></label>
+ <label class="small">What got in the way?<textarea data-rv="block">${esc(wk.review.block)}</textarea></label>
+ <label class="small">One change for next week<textarea data-rv="change">${esc(wk.review.change)}</textarea></label></div>`;
+ document.getElementById('week').innerHTML = h;
+}
+
+/* ---------- render: progress ---------- */
+function e1rm(w,r){ return w * (1 + r/30); }
+function liftSeries(id){
+ return Object.keys(S.days).sort().map(k => { const sets = (S.days[k].lifts||{})[id]; if (!sets) return null; const b = Math.max(0, ...sets.filter(s => s && +s.w > 0 && +s.r > 0).map(s => e1rm(+s.w, +s.r))); return b ? {k, v:b} : null; }).filter(Boolean);
+}
+function spark(series){
+ if (series.length < 2) return '<span class="muted small">Log 2+ sessions to see a trend</span>';
+ const W = 160, H = 36, vs = series.map(s => s.v), lo = Math.min(...vs), hi = Math.max(...vs), sp = hi - lo || 1;
+ const pts = series.map((s,i) => `${(i/(series.length-1)*W).toFixed(1)},${(H - 4 - (s.v-lo)/sp*(H-8)).toFixed(1)}`).join(' ');
+ return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent)"/></svg>`;
+}
+function renderProgress(){
+ let h = `<div class="card"><h2>Streaks</h2><div class="grid">${['gym','study','uni','french'].map(id => `<div class="stat"><div class="muted small">${HNAME[id]}</div><div class="v">${streak(id)} days</div></div>`).join('')}</div><p class="muted small">A streak counts planned days done (minimum version counts). Unplanned days don't break it.</p></div>`;
+ h += `<div class="card"><h2>Consistency, last 10 weeks</h2><div class="heat"><div class="lab"></div>${DOW.map(n => `<div class="lab">${n[0]}</div>`).join('')}`;
+ const m0 = addDays(monday(TODAY), -63);
+ for (let w = 0; w < 10; w++){
+   const mon = addDays(m0, 7*w); h += `<div class="lab">${mon.getDate()}/${mon.getMonth()+1}</div>`;
+   for (let i = 0; i < 7; i++){ const d = addDays(mon,i); let bg = 'var(--line)', op = 1;
+     if (d <= TODAY && d >= START) { const s = dayScore(d) || 0; bg = s === 0 ? 'var(--bad-soft)' : 'var(--accent)'; op = s === 0 ? 1 : 0.25 + 0.75*s; }
+     h += `<div title="${key(d)}" style="background:${bg};opacity:${op}"></div>`; }
+ }
+ h += `</div></div>`;
+ const keys = Object.keys(AIGP), done = keys.filter(k => (peekDay(k).checks.study||0) > 0).length;
+ h += `<div class="card"><h2>AIGP plan</h2><div class="spread small"><span>${done} of ${keys.length} study days done</span><span>${Math.round(100*done/keys.length)}%</span></div><div class="bar"><i style="width:${100*done/keys.length}%"></i></div></div>`;
+ h += `<div class="card"><h2>Strength trend (estimated 1-rep max)</h2><table>${[['bench','Bench press'],['squat','Back squat'],['deadlift','Deadlift'],['ohp','Overhead press'],['pullup','Pull-up']].map(([id,n]) => { const s = liftSeries(id); return `<tr><td>${n}</td><td>${s.length ? Math.round(s[s.length-1].v) + ' kg' : '<span class="muted">no data</span>'}</td><td>${spark(s)}</td></tr>`; }).join('')}</table></div>`;
+ if (S.settings.weight) h += `<div class="card"><h2>Nutrition target</h2><p>Protein about <b>${Math.round(1.6*S.settings.weight)} g a day</b> (1.6 g per kg at ${esc(S.settings.weight)} kg), 2-3 L water, 8,000+ steps.</p></div>`;
+ document.getElementById('progress').innerHTML = h;
+}
+
+/* ---------- render: plan & settings ---------- */
+function renderPlan(){
+ const cur = phaseFor(TODAY);
+ let h = `<div class="card"><h2>Phases</h2><table><tr><th>Dates</th><th>Phase</th><th>Exam study</th><th>Uni</th><th>French</th></tr>${PHASES.map(p => `<tr style="${p === cur ? 'font-weight:650' : ''}"><td>${fmt(parse(p.from))} - ${fmt(parse(p.to))} ${parse(p.from).getFullYear()}</td><td>${esc(p.name)}${p === cur ? ' &larr; now' : ''}</td><td>${p.study || 'none'}</td><td>${p.uni ? {restart:'Thesis restart',thesis:'Thesis, daily',defence:'Defence prep'}[p.uni] : 'done'}</td><td>${p.french} min</td></tr>`).join('')}</table></div>`;
+ h += `<div class="card"><h2>Weekly template</h2><table><tr><th>Day</th><th>Gym (60 min)</th><th>Study</th><th>Uni</th><th>French</th></tr>${DOW.map((n,i) => { const d = addDays(monday(TODAY), i), t = times(d); return `<tr><td>${n}</td><td>${t.gym} · ${WORKOUTS[GYM_BY_DOW[i]].name}</td><td>${phaseFor(d).study ? t.study : '-'}</td><td>${phaseFor(d).uni ? (phaseFor(d).study ? t.uni : t.study) : '-'}</td><td>${t.french}</td></tr>`; }).join('')}</table>
+ <p class="muted small">Weekdays with a morning gym: wake 06:00, gym 06:30, French on the commute, study 19:00, uni 20:15, screens off 22:30, sleep by 23:00.</p></div>`;
+ h += `<div class="card"><h2>Settings</h2>
+ <div class="row" style="margin-bottom:10px"><span>Gym time</span><div class="seg"><button data-gym="morning" class="${S.settings.gymTime !== 'evening' ? 'on' : ''}">Morning</button><button data-gym="evening" class="${S.settings.gymTime === 'evening' ? 'on' : ''}">Evening</button></div></div>
+ <div class="row" style="margin-bottom:10px"><span>INL class days</span>${DOW.map((n,i) => `<label class="small"><input type="checkbox" data-cls="${i}" ${(S.settings.classDays||[]).includes(i) ? 'checked' : ''}> ${n}</label>`).join('')}</div>
+ <div class="row" style="margin-bottom:10px"><label>Body weight <input class="n" type="number" data-weight value="${esc(S.settings.weight)}"> kg</label><span class="muted small">for the protein target</span></div>
+ <div class="row"><button class="btn" data-act="reset">Reset all data</button></div></div>`;
+ let syncMsg = ''; try { syncMsg = localStorage.getItem(KEY+'-sync') || ''; } catch(e){}
+ h += `<div class="card"><h2>Google Drive</h2>
+ <p class="small">Your progress lives on this device and, if you connect it, in a hidden app folder in <b>your own Google Drive</b>. Nothing goes to any other server.</p>
+ <h3>Option 1: backup file (no setup)</h3>
+ <div class="row"><button class="btn primary" data-act="share">Save backup to Drive</button><label class="btn">Load backup from Drive<input type="file" accept=".json,application/json" data-act="import" class="hide"></label></div>
+ <p class="muted small">On Android, "Save" opens the share menu: pick Drive. "Load" opens the file picker: pick Drive, then the newest backup. Loading merges with what's on this device; the newest change wins.</p>
+ <h3>Option 2: automatic sync</h3>
+ <div class="row"><input type="text" style="flex:1;min-width:220px" placeholder="Google OAuth client ID (...apps.googleusercontent.com)" data-clientid value="${esc(S.settings.driveClientId)}"><button class="btn primary" data-act="sync">Connect &amp; sync</button></div>
+ <p class="small" id="syncstatus">${esc(syncMsg)}</p>
+ <details><summary>One-time setup (about 10 minutes, free)</summary><ol class="small">
+ <li>Go to console.cloud.google.com and create a project, e.g. "Improvement Plan".</li>
+ <li>APIs &amp; Services &gt; Library: enable the <b>Google Drive API</b>.</li>
+ <li>OAuth consent screen: choose External, fill in the app name and your email, and add yourself as a test user.</li>
+ <li>Credentials &gt; Create credentials &gt; OAuth client ID &gt; Web application. Under Authorised JavaScript origins add the address this app is hosted at, <code>https://gandhi-taha.github.io</code> (no path).</li>
+ <li>Copy the client ID, paste it above, and tap Connect &amp; sync. Grant access to "app data" only. This app cannot see your other Drive files.</li>
+ <li>Do the same Connect on your phone. After that, changes sync a few seconds after you make them, and the Sync button at the top pulls the latest.</li></ol></details></div>`;
+ h += `<div class="card"><h2>Install on Android</h2><ol class="small">
+ <li>Host this folder on GitHub Pages: a public repo, upload the files, then Settings &gt; Pages &gt; deploy from the main branch. Your data is not in the repo; it stays on your devices and in your Drive.</li>
+ <li>On your phone, open the Pages address in Chrome, then menu &gt; <b>Add to Home screen</b> (or "Install app").</li>
+ <li>It opens full-screen like an app and works offline. Sync when you're back online.</li></ol></div>`;
+ document.getElementById('plan').innerHTML = h;
+}
+
+/* ---------- render: guide ---------- */
+function renderGuide(){
+ document.getElementById('guide').innerHTML = `
+<div class="card"><h2>The methods behind this page</h2><ul>
+<li><b>Time-blocking:</b> every habit has a fixed slot, so you never decide "when". Put the slots in your calendar.</li>
+<li><b>Minimum version</b> (from James Clear's <i>Atomic Habits</i>): on bad days, do the small version. It counts half and keeps the habit alive.</li>
+<li><b>Never miss twice:</b> one miss is life; two in a row is a new habit. The page warns you the day after a miss.</li>
+<li><b>Weekly Big 3:</b> 2-3 outcomes per week, not 20 tasks. Set them on Sunday.</li>
+<li><b>Weekly review</b> (from David Allen's <i>Getting Things Done</i>): 15 minutes every Sunday, with the smart review on the Week tab.</li>
+<li><b>Pomodoro blocks:</b> 25 minutes of focus and 5 off; two of them make your study hour.</li>
+<li><b>Progressive overload:</b> the gym table tells you when to add weight, based on your last session.</li>
+<li><b>Spaced repetition</b> (Anki) for French and exam facts.</li>
+<li><b>Readiness check-in:</b> sleep and energy adjust the day's advice.</li>
+</ul></div>
+<div class="card"><h2>How to do each activity</h2>
+<details open><summary>Study hour (AIGP and later exams)</summary><ul>
+<li>Phone in another room, one browser tab, today's topic only.</li>
+<li>Block 1 (25 min): read or watch. Block 2 (25 min): close the source and write what you remember, then check.</li>
+<li>Last 10 min: write a 5-line summary and add any new facts to Anki.</li>
+<li>Saturday long blocks: practice questions. Every wrong answer goes in a "mistakes" note with the reason.</li></ul></details>
+<details><summary>Uni hour (thesis)</summary><ul>
+<li>Rule: every session ends with something visible: a paragraph, a commit, a results line, or a paper note.</li>
+<li>Start by reading the last line of yesterday's thesis log; end by writing tomorrow's first step.</li>
+<li>Write badly first and edit on another day. 300-400 words a day is a thesis in about four months.</li>
+<li>Every second Sunday, send your supervisor a 5-line progress email. It keeps you accountable.</li></ul></details>
+<details><summary>Gym hour (4 strength days + Zone 2 + swim + walk)</summary><ul>
+<li>Warm-up, 8 min: 5 min easy cardio, then 2 light sets of your first lift.</li>
+<li>Main lifts: rest 2-3 min between sets; accessories 60-90 s. Stop each set with 1-2 reps left in the tank.</li>
+<li>When every set hits the top of the rep range, add weight next time; the table tells you how much.</li>
+<li>Every 6th week is a deload: 2 sets, same weights.</li>
+<li>Zone 2 means you can still talk in full sentences. It builds the endurance that also helps your focus.</li>
+<li>Sleep 7-9 h, protein about 1.6 g per kg body weight, 8,000+ steps a day. If you have an injury or a medical condition, check with a doctor or physiotherapist first.</li></ul></details>
+<details><summary>French (15-45 min)</summary><ul>
+<li>Anki first (10 min), then listening: RFI "Journal en fran&ccedil;ais facile" from A2.</li>
+<li>Writing: 3-5 sentences about your day, then read them aloud (shadowing builds speaking).</li>
+<li>Use it in Luxembourg: order in French, and switch one app to French.</li></ul></details>
+<details><summary>Sunday review (15 min)</summary><ol>
+<li>Week tab: read the smart review.</li>
+<li>Answer the three questions: what went well, what got in the way, one change.</li>
+<li>Set next week's Big 3 (press &rarr; on the Week tab).</li>
+<li>Plan &amp; settings: export a backup.</li></ol></details>
+</div>`;
+}
+
+/* ---------- events ---------- */
+function renderAll(){
+ renderHeader();
+ const sb = document.getElementById('syncbtn'); if (sb) sb.style.display = S.settings.driveClientId ? 'inline-block' : 'none';
+ ({today:renderToday, planner:renderPlanner, tracker:renderTracker, week:renderWeek, progress:renderProgress, plan:renderPlan, guide:renderGuide})[tab]();
+}
+const CYCLE = v => v === undefined ? 1 : v === 1 ? 0.5 : v === 0.5 ? 0 : undefined;
+function showTab(name){
+ tab = name; document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x.dataset.tab === name));
+ document.querySelectorAll('main section').forEach(s => s.classList.toggle('hide', s.id !== name));
+ renderAll(); window.scrollTo(0,0);
+}
+const touch = o => { o.u = now(); return o; };
+function cycleCheck(k, h){ const day = touch(getDay(k)), v = CYCLE(day.checks[h]); if (v === undefined) delete day.checks[h]; else day.checks[h] = v; save(); renderAll(); }
+const goalById = id => S.goals.find(g => g.id === id);
+const taskById = id => S.tasks.find(t => t.id === id);
+document.addEventListener('click', e => {
+ const t = e.target.closest('[data-tab],[data-goto],[data-nav],[data-wnav],[data-mnav],[data-check],[data-cell],[data-energy],[data-gym],[data-act],[data-pdays],[data-gfilter],[data-gdel],[data-tdel]');
+ if (!t) return; const ds = t.dataset;
+ if (ds.tab) return showTab(ds.tab);
+ if (ds.goto) return showTab(ds.goto);
+ if (ds.nav !== undefined) { const n = +ds.nav; viewDate = n === 0 ? new Date(TODAY) : addDays(viewDate, n); return renderAll(); }
+ if (ds.wnav !== undefined) { const n = +ds.wnav; weekView = n === 0 ? monday(TODAY) : addDays(weekView, 7*n); return renderAll(); }
+ if (ds.mnav !== undefined) { const n = +ds.mnav; trackMonth = n === 0 ? new Date(TODAY.getFullYear(), TODAY.getMonth(), 1) : new Date(trackMonth.getFullYear(), trackMonth.getMonth()+n, 1); return renderAll(); }
+ if (ds.check) return cycleCheck(key(viewDate), ds.check);
+ if (ds.cell) return cycleCheck(ds.k, ds.cell);
+ if (ds.energy) { const day = touch(getDay(key(viewDate))); day.energy = day.energy === +ds.energy ? 0 : +ds.energy; save(); return renderAll(); }
+ if (ds.gym) { S.settings.gymTime = ds.gym; touch(S.settings); save(); return renderAll(); }
+ if (ds.pdays) { plannerDays = +ds.pdays; return renderAll(); }
+ if (ds.gfilter) { goalFilter = ds.gfilter; return renderAll(); }
+ if (ds.gdel) { const g = goalById(ds.gdel); if (g && confirm(`Delete the goal "${g.t}"?`)) { g.del = true; touch(g); save(); renderAll(); } return; }
+ if (ds.tdel) { const x = taskById(ds.tdel); if (x && confirm(`Delete "${x.t}"${x.repeat && x.repeat !== 'none' ? ' and all its repeats' : ''}?`)) { x.del = true; touch(x); save(); renderAll(); } return; }
+ if (ds.act === 'addtask') {
+   const tt = document.getElementById('p-t').value.trim(); if (!tt) { document.getElementById('p-t').focus(); return; }
+   S.tasks.push({id:uid(), t:tt, date:document.getElementById('p-d').value || key(TODAY), time:document.getElementById('p-tm').value, cat:document.getElementById('p-c').value, repeat:document.getElementById('p-r').value, doneOn:{}, u:now()});
+   save(); return renderAll();
+ }
+ if (ds.act === 'addgoal') { S.goals.push({id:uid(), area:'Personal', t:'New goal', due:key(addDays(TODAY,30)), auto:null, target:null, status:'Not started', pct:0, done:false, u:now()}); goalFilter = 'open'; save(); renderAll(); const inp = document.querySelectorAll('table.goals input[type=text]'); const last = [...inp].find(i => i.value === 'New goal'); if (last) { last.focus(); last.select(); } return; }
+ if (ds.act === 'share') return shareBackup();
+ if (ds.act === 'sync') { const ci = document.querySelector('[data-clientid]'); if (ci && ci.value.trim() !== S.settings.driveClientId) { S.settings.driveClientId = ci.value.trim(); saveLocal(); } return syncNow(true); }
+ if (ds.act === 'reset') { if (confirm('Delete all your check-ins, lifts, tasks, goals and reviews on this device? Your Google Drive copy is not touched. This cannot be undone.')) { S = fresh(); saveLocal(); renderAll(); } }
+});
+document.addEventListener('change', e => {
+ const t = e.target, ds = t.dataset;
+ if (ds.lift) { const day = touch(getDay(key(viewDate))), arr = day.lifts[ds.lift] || (day.lifts[ds.lift] = []); const s = arr[+ds.i] || (arr[+ds.i] = {}); s[ds.k] = t.value; save(); return; }
+ if (ds.f) { touch(getDay(key(viewDate)))[ds.f] = t.value; save(); if (ds.f === 'sleep') renderAll(); return; }
+ if (ds.b3 !== undefined) { const w = touch(weekData(weekView)); w.big3[+ds.b3].done = t.checked; save(); return; }
+ if (ds.b3t !== undefined) { const w = touch(weekData(weekView)); w.big3[+ds.b3t].t = t.value; save(); return; }
+ if (ds.rv) { const w = touch(weekData(weekView)); w.review[ds.rv] = t.value; save(); return; }
+ if (ds.cls !== undefined) { const i = +ds.cls, c = S.settings.classDays || (S.settings.classDays = []); if (t.checked && !c.includes(i)) c.push(i); if (!t.checked) S.settings.classDays = c.filter(x => x !== i); touch(S.settings); save(); return; }
+ if (ds.weight !== undefined) { S.settings.weight = t.value; touch(S.settings); save(); return; }
+ if (ds.clientid !== undefined) { S.settings.driveClientId = t.value.trim(); touch(S.settings); saveLocal(); renderHeader(); return; }
+ if (ds.gdone) { const g = touch(goalById(ds.gdone)); g.done = t.checked; g.status = t.checked ? 'Done' : (g.pct > 0 ? 'In progress' : 'Not started'); save(); return renderAll(); }
+ if (ds.gid) {
+   const g = touch(goalById(ds.gid)), f = ds.gf;
+   if (f === 'pct') { g.pct = Math.max(0, Math.min(100, +t.value || 0)); g.done = g.pct >= 100; g.status = g.done ? 'Done' : g.pct > 0 ? 'In progress' : 'Not started'; }
+   else if (f === 'status') { g.status = t.value; g.done = t.value === 'Done'; if (g.done) g.pct = 100; else if (g.pct >= 100) g.pct = 50; }
+   else g[f] = t.value;
+   save(); return renderAll();
+ }
+ if (ds.tdone) { const x = touch(taskById(ds.tdone)); x.doneOn = x.doneOn || {}; if (t.checked) x.doneOn[ds.k] = true; else delete x.doneOn[ds.k]; save(); return renderAll(); }
+ if (ds.act === 'import' && t.files[0]) { const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); if (d && d.days) { S = merge(S, d); if (!S.goals.length) S.goals = defaultGoals(); save(); renderAll(); alert('Backup loaded and merged.'); } else alert('That file is not a backup from this app.'); } catch(err){ alert('Could not read that file.'); } }; r.readAsText(t.files[0]); t.value = ''; }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'p-t') document.querySelector('[data-act=addtask]').click(); });
+window.addEventListener('online', () => schedulePush());
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) navigator.serviceWorker.register('sw.js').catch(() => {});
+renderAll();
+</script>
+</body>
+</html>
