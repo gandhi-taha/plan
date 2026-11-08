@@ -185,7 +185,57 @@ table.goals tr.late input[data-gf=due]{color:var(--bad);font-weight:600}
 .block.fixed .title{color:var(--ink-3);font-weight:550;font-size:14px}
 .block.fixed.work .title{color:var(--ink-2)}
 .block.fixed.class .title{color:var(--accent-ink)}
+/* live layer */
+.card.now{padding:18px 20px;background:linear-gradient(180deg,#fff, #fbfbf9)}
+.now-grid{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center}
+.now-ring{position:relative;width:68px;height:68px}
+.now-ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:18px;font-weight:700;letter-spacing:-.02em}
+.now-ring b small{font-size:11px;color:var(--ink-3);font-weight:600}
+.now-title{font-size:19px;font-weight:700;letter-spacing:-.015em;margin-top:2px;line-height:1.25}
+.now-sub{color:var(--ink-2);font-size:14px;margin-top:2px}
+.now-then{color:var(--ink-3);font-size:13px;margin-top:8px}
+.now-then b{color:var(--ink-2);font-weight:600}
+.live{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--good);margin-right:7px;vertical-align:1px;animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(31,138,76,.45)}70%{box-shadow:0 0 0 7px rgba(31,138,76,0)}100%{box-shadow:0 0 0 0 rgba(31,138,76,0)}}
+.mom{display:flex;align-items:flex-end;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2);font-size:12px;color:var(--ink-3)}
+.spark{flex:1;display:flex;align-items:flex-end;gap:4px;height:34px}
+.spark i{flex:1;background:var(--good-soft);border-radius:3px;min-height:3px;transition:height .4s}
+.spark i.today{background:var(--good)}
+.acts{display:flex;align-items:center;gap:10px}
+.play{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer;display:grid;place-items:center;flex:none}
+.play:hover{border-color:var(--accent);color:var(--accent)}
+.play svg{width:12px;height:12px;fill:currentColor;margin-left:2px}
+.check.s1 .dot{animation:pop .28s ease}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+.focus{position:fixed;inset:0;z-index:50;background:rgba(247,247,244,.97);backdrop-filter:blur(6px);display:grid;place-items:center;padding:20px}
+.f-in{max-width:520px;width:100%;text-align:center}
+.f-title{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:6px 0 18px}
+.f-ring{position:relative;width:220px;height:220px;margin:0 auto}
+.f-ring svg{display:block}
+.f-time{position:absolute;inset:0;display:grid;place-items:center;font-size:46px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.f-detail{color:var(--ink-2);margin-top:18px;font-size:15px}
+.f-stats{color:var(--ink-3);font-size:13px;margin-top:6px}
+.rest{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:40;background:var(--ink);color:#fff;border-radius:14px;padding:10px 12px 10px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:280px}
+.rest div{flex:1;display:flex;flex-direction:column}
+.rest b{font-size:17px;font-variant-numeric:tabular-nums}
+.rest span{font-size:12px;opacity:.7}
+.rest .btn{background:rgba(255,255,255,.12);border-color:transparent;color:#fff;padding:6px 10px}
+.rest .x{color:#fff;opacity:.7}
+.fab{position:fixed;right:18px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:30;width:54px;height:54px;border-radius:18px;border:0;background:var(--ink);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18)}
+.fab svg{width:24px;height:24px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round}
+.sheet{position:fixed;inset:0;z-index:45;background:rgba(20,20,22,.28);display:flex;align-items:flex-end;justify-content:center}
+.sheet-in{background:var(--surface);width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;animation:up .2s ease}
+@keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+input.qa,#qs{width:100%;font-size:16px;padding:12px 14px}
+.qa-prev{display:flex;flex-wrap:wrap;gap:6px;min-height:8px;margin:8px 0}
+.chip{font-size:12.5px;padding:3px 9px;border-radius:7px;background:var(--line-2);color:var(--ink-2);font-weight:550}
+.chip.strong{background:var(--accent-soft);color:var(--accent-ink)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:60;background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.hide.focus,.hide.rest,.hide.sheet,.hide.toast{display:none}
+@media (min-width:900px){.fab{bottom:28px;right:28px}.rest{bottom:28px}.sheet{align-items:center}.sheet-in{border-radius:20px}}
+@media (max-width:620px){.now-grid{grid-template-columns:auto 1fr}.now-act{grid-column:1/-1}.now-act .btn{width:100%}}
 </style>
+
 </head>
 <body>
 <nav class="nav" id="tabs">
@@ -677,6 +727,7 @@ function renderToday(){
  const mon = monday(d);
  let h = `<div class="strip"><button class="ibtn" data-nav="-7" title="Previous week"><svg viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6"/></svg></button>${DOW.map((n,i) => { const x = addDays(mon,i), s = x <= TODAY && x >= START ? dayScore(x) : null; return `<button class="sday ${key(x) === key(d) ? 'sel' : ''} ${key(x) === key(TODAY) ? 'now' : ''}" data-goto-day="${key(x)}"><span>${n}</span><b>${x.getDate()}</b><i style="--p:${s === null ? 0 : Math.round(s*100)}"></i></button>`; }).join('')}<button class="ibtn" data-nav="7" title="Next week"><svg viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></svg></button></div>`;
  if (key(d) !== key(TODAY)) h += `<div style="margin:-4px 0 12px"><button class="btn" data-nav="0">Back to today</button></div>`;
+ else h += `<div id="nowcard" class="card now"></div>`;
  const alerts = [];
  if (p.note) alerts.push({c:'info', t:p.note});
  if (d < START) alerts.push({c:'info', t:'The plan starts on Monday 9 November. Today: read the "How to" tab, pack your gym bag, set up Anki, and put your study blocks in your calendar.'});
@@ -700,7 +751,7 @@ function renderToday(){
    if (x.row === 'fixed') { h += `<div class="block fixed ${x.kind}"><div class="time">${esc(x.time)}</div><div><div class="title">${esc(x.label)}</div></div><div></div></div>`; return; }
    const v = day.checks[x.id];
    h += `<div class="block"><div class="time">${esc(x.time)}</div><div><div class="title">${esc(x.title)}</div><div class="detail">${esc(x.detail)}</div><div class="min">${esc(x.min)}</div></div>
-   <button class="check ${stateClass(v)}" data-check="${x.id}" aria-label="${stateLabel(v)}"><span class="lab">${v === undefined ? '' : stateLabel(v)}</span><span class="dot"></span></button></div>`;
+   <div class="acts">${v === 1 ? '' : `<button class="play" data-focus="${x.id}" data-k="${k}" title="Start focus timer"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></button>`}<button class="check ${stateClass(v)}" data-check="${x.id}" aria-label="${stateLabel(v)}"><span class="lab">${v === undefined ? '' : stateLabel(v)}</span><span class="dot"></span></button></div></div>`;
    if (x.workout) h += workoutTable(x.workout, k, isDeload(d));
  });
  h += `<p class="muted small" style="margin-bottom:0">Tap the circle once for done, twice for the minimum version (counts half), three times for skipped.</p></div>`;
@@ -710,6 +761,7 @@ function renderToday(){
  h += `<div class="card"><h2>This week's Big 3</h2><div class="muted small">The 2-3 results that make this week a win.</div>${wk.big3.map((b,i) => `<div>${b.done ? '&#10003;' : '&#9675;'} ${esc(b.t)}</div>`).join('')}</div>`;
  h += `<div class="card"><h2>Note</h2><textarea data-f="note" placeholder="One line: what worked, what got in the way">${esc(day.note)}</textarea></div>`;
  document.getElementById('today').innerHTML = h;
+ renderNow();
 }
 function workoutTable(wid, k, deload){
  const w = WORKOUTS[wid], day = getDay(k);
@@ -730,12 +782,12 @@ function taskRow(t, k){
 }
 let plannerDays = 14;
 function renderPlanner(){
- let h = `<div class="card"><h2>Add to your planner</h2><div class="form">
+ let h = quickCard() + `<details class="card more"><summary>Add with all options</summary><div class="form" style="margin-top:12px">
  <input type="text" id="p-t" placeholder="What? e.g. Call supervisor, meal prep, INL homework">
  <input type="date" id="p-d" value="${key(viewDate)}"><input type="time" id="p-tm">
  <select id="p-c">${CATS.map(c => `<option>${c}</option>`).join('')}</select>
  <select id="p-r"><option value="none">Once</option><option value="daily">Daily</option><option value="weekly">Weekly</option></select>
- <button class="btn primary" data-act="addtask">Add</button></div></div>`;
+ <button class="btn primary" data-act="addtask">Add</button></div></details>`;
  const late = [];
  S.tasks.filter(t => !t.del && (!t.repeat || t.repeat === 'none') && t.date < key(TODAY) && !taskDone(t, t.date)).forEach(t => late.push(t));
  if (late.length) h += `<div class="card"><h2 style="color:var(--bad)">Overdue</h2>${late.map(t => taskRow(t, t.date).replace('<span class="time">', `<span class="time">${fmt(parse(t.date))} `)).join('')}</div>`;
@@ -849,6 +901,7 @@ function renderProgress(){
  const keys = Object.keys(AIGP), done = keys.filter(k => (peekDay(k).checks.study||0) > 0).length;
  h += `<div class="card"><h2>AIGP plan</h2><div class="spread small"><span>${done} of ${keys.length} study days done</span><span>${Math.round(100*done/keys.length)}%</span></div><div class="bar"><i style="width:${100*done/keys.length}%"></i></div></div>`;
  h += `<div class="card"><h2>Strength trend (estimated 1-rep max)</h2><table>${[['bench','Bench press'],['squat','Back squat'],['deadlift','Deadlift'],['ohp','Overhead press'],['pullup','Pull-up']].map(([id,n]) => { const s = liftSeries(id); return `<tr><td>${n}</td><td>${s.length ? Math.round(s[s.length-1].v) + ' kg' : '<span class="muted">no data</span>'}</td><td>${spark(s)}</td></tr>`; }).join('')}</table></div>`;
+ h += focusCard();
  if (S.settings.weight) h += `<div class="card"><h2>Nutrition target</h2><p>Protein about <b>${Math.round(1.6*S.settings.weight)} g a day</b> (1.6 g per kg at ${esc(S.settings.weight)} kg), 2-3 L water, 8,000+ steps.</p></div>`;
  document.getElementById('progress').innerHTML = h;
 }
@@ -989,7 +1042,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => {
  const t = e.target, ds = t.dataset;
- if (ds.lift) { const day = touch(getDay(key(viewDate))), arr = day.lifts[ds.lift] || (day.lifts[ds.lift] = []); const s = arr[+ds.i] || (arr[+ds.i] = {}); s[ds.k] = t.value; save(); return; }
+ if (ds.lift) { const day = touch(getDay(key(viewDate))), arr = day.lifts[ds.lift] || (day.lifts[ds.lift] = []); const s = arr[+ds.i] || (arr[+ds.i] = {}); s[ds.k] = t.value; save(); if (ds.k === 'r' && t.value && key(viewDate) === key(TODAY)) startRest(ds.lift, +ds.i); return; }
  if (ds.f) { touch(getDay(key(viewDate)))[ds.f] = t.value; save(); if (ds.f === 'sleep') renderAll(); return; }
  if (ds.b3 !== undefined) { const w = touch(weekData(weekView)); w.big3[+ds.b3].done = t.checked; save(); return; }
  if (ds.b3t !== undefined) { const w = touch(weekData(weekView)); w.big3[+ds.b3t].t = t.value; save(); return; }
@@ -1016,6 +1069,168 @@ document.addEventListener('change', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'p-t') document.querySelector('[data-act=addtask]').click(); });
 window.addEventListener('online', () => schedulePush());
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) navigator.serviceWorker.register('sw.js').catch(() => {});
+/* ---------- live layer: now/next card, focus timer, gym rest timer, quick add ---------- */
+const nowMin = () => { const n = new Date(); return n.getHours()*60 + n.getMinutes(); };
+const fmtDur = m => { m = Math.max(0, Math.round(m)); const h = Math.floor(m/60), r = m % 60; return h ? `${h}h ${pad(r)}m` : `${r} min`; };
+function ring(p, size, stroke, color){
+ const r = (size - stroke)/2, c = 2*Math.PI*r, o = c*(1 - Math.max(0, Math.min(1, p)));
+ return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--line-2)" stroke-width="${stroke}"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color || 'var(--good)'}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${o.toFixed(1)}" transform="rotate(-90 ${size/2} ${size/2})"/></svg>`;
+}
+function timeline(d){
+ const sc = schedule(d), day = peekDay(key(d));
+ const hab = habitsFor(d).map(h => { const x = sc[h.id] || {s:h.s, e:h.s + 60}; return {s:x.s, e:x.e, label:h.title, id:h.id, done:(day.checks[h.id]||0) > 0}; });
+ const fixed = sc.fixed.filter(f => f.kind !== 'class').map(f => ({s:f.s, e:f.e, label:f.label, kind:f.kind}));
+ return [...hab, ...fixed].sort((a,b) => a.s - b.s);
+}
+function renderNow(){
+ const el = document.getElementById('nowcard'); if (!el) return;
+ const d = new Date(TODAY), k = key(d), m = nowMin(), tl = timeline(d), score = dayScore(d) || 0, checks = peekDay(k).checks;
+ const cur = tl.filter(x => x.s <= m && m < x.e), main = cur.find(x => x.id && !x.done) || cur.find(x => !x.id) || cur[0];
+ const next = tl.find(x => x.s > m && !(x.id && x.done)), open = habitsFor(d).filter(h => !((checks[h.id]||0) > 0));
+ let title, sub, pct = null, act = '';
+ if (main) { pct = (m - main.s)/(main.e - main.s); title = main.label; sub = `${fmtDur(main.e - m)} left, until ${hm(main.e)}`; if (main.id && !main.done) act = `<button class="btn primary" data-focus="${main.id}" data-k="${k}">Start focus</button>`; }
+ else if (next) { title = `Next: ${next.label}`; sub = `in ${fmtDur(next.s - m)}, at ${hm(next.s)}`; if (next.id) act = `<button class="btn" data-focus="${next.id}" data-k="${k}">Start now</button>`; }
+ else if (m >= T(SET('bed')) - 30) { title = 'Wind down'; sub = open.length ? `Tick what you did today (${open.length} still open), then sleep.` : 'Everything is done. Good day.'; }
+ else { title = open.length ? 'Free time' : 'All done for today'; sub = open.length ? `Still open: ${open.map(h => HNAME[h.id]).join(', ')}` : 'Enjoy the evening.'; }
+ const then = main && next ? `<div class="now-then">Then <b>${esc(next.label)}</b> at ${hm(next.s)}</div>` : '';
+ const days = Array.from({length:14}, (_,i) => addDays(TODAY, i - 13)).filter(x => x >= START);
+ const spark = days.length > 1 ? `<div class="mom"><span>Last ${days.length} days</span><div class="spark">${days.map(x => `<i title="${fmt(x)}: ${Math.round(100*(dayScore(x)||0))}%" class="${key(x) === k ? 'today' : ''}" style="height:${Math.max(6, Math.round(100*(dayScore(x)||0)))}%"></i>`).join('')}</div></div>` : '';
+ el.innerHTML = `<div class="now-grid"><div class="now-ring">${ring(score, 68, 7)}<b>${Math.round(score*100)}<small>%</small></b></div>
+ <div class="now-main"><div class="eyebrow"><span class="live"></span>${hm(m)} &middot; ${main ? 'now' : 'coming up'}</div><div class="now-title">${esc(title)}</div><div class="now-sub">${esc(sub)}</div>${pct !== null ? `<div class="bar" style="margin-top:10px"><i style="width:${Math.round(pct*100)}%"></i></div>` : ''}${then}</div>
+ <div class="now-act">${act}</div></div>${spark}`;
+}
+
+/* focus timer: Pomodoro for study and thesis, a straight countdown for the rest */
+let F = null, R = null;
+function ensureLiveUI(){
+ if (document.getElementById('focus')) return;
+ const wrap = document.createElement('div');
+ wrap.innerHTML = `<div id="focus" class="focus hide" role="dialog" aria-label="Focus timer"><div class="f-in"><div class="eyebrow" id="f-phase"></div><div class="f-title" id="f-title"></div><div class="f-ring"><div id="f-ringsvg"></div><div class="f-time" id="f-time"></div></div><div class="f-detail" id="f-detail"></div><div class="f-stats" id="f-stats"></div><div class="row" style="justify-content:center;margin-top:18px"><button class="btn" data-fact="pause" id="f-pause">Pause</button><button class="btn primary" data-fact="done">Finish, mark done</button><button class="btn" data-fact="stop">Stop</button></div><p class="muted small" style="text-align:center;margin-top:14px">Phone face down. The screen stays on while the timer runs.</p></div></div>
+ <div id="rest" class="rest hide"><div><b id="rest-t"></b><span id="rest-l"></span></div><button class="btn" data-rest="add">+30 s</button><button class="x" data-rest="skip" title="Skip rest">&times;</button></div>
+ <button id="fab" class="fab" data-qa="open" title="Quick add (N)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+ <div id="sheet" class="sheet hide"><div class="sheet-in"><div class="spread"><h2 style="margin:0">Quick add</h2><button class="x" data-qa="close">&times;</button></div><input type="text" id="qs" placeholder='e.g. "gym tomorrow 18:00" or "call supervisor fri 10am weekly"' autocomplete="off"><div class="qa-prev" id="qs-prev"></div><div class="row" style="justify-content:flex-end"><button class="btn primary" data-qa="add-sheet">Add</button></div></div></div>
+ <div id="toast" class="toast hide"></div>`;
+ [...wrap.children].forEach(c => document.body.appendChild(c));
+}
+function toast(t){ const el = document.getElementById('toast'); el.textContent = t; el.classList.remove('hide'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.add('hide'), 2600); }
+function keepAwake(on){ try { if (on && 'wakeLock' in navigator) navigator.wakeLock.request('screen').then(w => { if (F) F.wake = w; }).catch(() => {}); else if (!on && F && F.wake) F.wake.release(); } catch(e){} }
+function beep(){ try { const a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.setValueAtTime(.18, a.currentTime); g.gain.exponentialRampToValueAtTime(.001, a.currentTime + .7); o.start(); o.stop(a.currentTime + .7); } catch(e){} if (navigator.vibrate) navigator.vibrate([180, 90, 180]); }
+function openFocus(id, k){
+ const d = parse(k), h = habitsFor(d).find(x => x.id === id); if (!h) return;
+ const sc = schedule(d), x = sc[id], total = Math.max(10, x ? x.e - x.s : 60), pomo = (id === 'study' || id === 'uni') && total >= 50;
+ F = {id, k, title:h.title, detail:h.detail, total, pomo, blocks: pomo ? Math.max(1, Math.round(total/30)) : 1, block:1, phase:'focus', left:(pomo ? 25 : total)*60, len:(pomo ? 25 : total)*60, focused:0, running:true, last:Date.now()};
+ ensureLiveUI(); document.getElementById('focus').classList.remove('hide'); keepAwake(true); paintFocus();
+}
+function paintFocus(){
+ if (!F) return;
+ const L = Math.max(0, Math.ceil(F.left)), p = 1 - F.left/F.len;
+ document.getElementById('f-phase').textContent = F.phase === 'break' ? 'Break: stand up, water, no phone' : F.pomo ? `Focus block ${F.block} of ${F.blocks}` : 'Focus';
+ document.getElementById('f-title').textContent = F.title;
+ document.getElementById('f-detail').textContent = F.detail;
+ document.getElementById('f-time').textContent = `${Math.floor(L/60)}:${pad(L % 60)}`;
+ document.getElementById('f-ringsvg').innerHTML = ring(p, 220, 12, F.phase === 'break' ? 'var(--half)' : 'var(--accent)');
+ document.getElementById('f-stats').textContent = `${Math.floor(F.focused/60)} min focused so far`;
+ document.getElementById('f-pause').textContent = F.running ? 'Pause' : 'Resume';
+ document.title = `${Math.floor(L/60)}:${pad(L % 60)} · ${F.phase === 'break' ? 'Break' : HNAME[F.id]}`;
+}
+function nextPhase(){
+ beep();
+ if (F.pomo && F.phase === 'focus' && F.block < F.blocks) { F.phase = 'break'; F.left = F.len = 5*60; return; }
+ if (F.pomo && F.phase === 'break') { F.phase = 'focus'; F.block++; F.left = F.len = 25*60; return; }
+ closeFocus(true);
+}
+function closeFocus(complete){
+ if (!F) return;
+ const day = touch(getDay(F.k)), mins = Math.round(F.focused/60);
+ day.mins = day.mins || {}; day.mins[F.id] = (day.mins[F.id] || 0) + mins;
+ const prev = day.checks[F.id] || 0;
+ if (complete) day.checks[F.id] = 1; else if (mins >= 25 && prev < 0.5) day.checks[F.id] = 0.5;
+ save(); keepAwake(false); document.getElementById('focus').classList.add('hide'); document.title = 'Improvement Plan';
+ const msg = complete ? `Done. ${mins} min focused on ${HNAME[F.id]}.` : mins >= 25 ? `Stopped after ${mins} min. Counted as the minimum version.` : `Stopped after ${mins} min.`;
+ F = null; renderAll(); toast(msg);
+}
+function startRest(exId, i){
+ const w = Object.values(WORKOUTS).find(w => w.ex && w.ex.some(e => e[0] === exId)); if (!w) return;
+ const ex = w.ex.find(e => e[0] === exId), main = w.ex.indexOf(ex) < 2, secs = main ? 150 : 90;
+ R = {end:Date.now() + secs*1000, label: i + 1 < ex[2] ? `${ex[1]}: set ${i + 2} next` : 'Next exercise'};
+ ensureLiveUI(); document.getElementById('rest').classList.remove('hide'); paintRest();
+}
+function paintRest(){
+ const el = document.getElementById('rest'); if (!R || !el) return;
+ const left = Math.ceil((R.end - Date.now())/1000);
+ if (left <= 0) { beep(); R = null; el.classList.add('hide'); toast('Rest over. Next set.'); return; }
+ document.getElementById('rest-t').textContent = `Rest ${Math.floor(left/60)}:${pad(left % 60)}`;
+ document.getElementById('rest-l').textContent = R.label;
+}
+setInterval(() => {
+ if (key(new Date()) !== key(TODAY) && !F) return location.reload();
+ if (F && F.running) { const n = Date.now(), dt = (n - F.last)/1000; F.last = n; F.left -= dt; if (F.phase === 'focus') F.focused += dt; if (F.left <= 0) nextPhase(); if (F) paintFocus(); }
+ if (R) paintRest();
+}, 250);
+setInterval(() => { if (tab === 'today' && !F) renderNow(); }, 30000);
+
+/* quick add: understands "tomorrow", weekdays, 12/11, 18:00, 6pm, daily, weekly */
+const CAT_WORDS = [[/\b(gym|workout|run|swim|lift|training)\b/i,'Gym'],[/\b(aigp|study|exam|cism|azure|az-\d+|iso|aaism)\b/i,'Study'],[/\b(thesis|uni|paper|supervisor|experiment|chapter)\b/i,'Uni'],[/\b(french|inl|anki|delf|tandem)\b/i,'French'],[/\b(meeting|office|work|dbg|workshop|email)\b/i,'Work']];
+function parseQuick(text){
+ let s = ` ${text.trim()} `, date = new Date(TODAY), time = '', repeat = 'none', m;
+ const take = re => { const r = s.match(re); if (r) s = s.replace(r[0], ' '); return r; };
+ if (take(/\s(every ?day|daily)\s/i)) repeat = 'daily';
+ if (take(/\s(every ?week|weekly)\s/i)) repeat = 'weekly';
+ if ((m = take(/\s(?:at\s)?([01]?\d|2[0-3])[:h]([0-5]\d)\s/i))) time = `${pad(+m[1])}:${m[2]}`;
+ else if ((m = take(/\s(?:at\s)?(1[0-2]|0?[1-9])(?::([0-5]\d))?\s?(am|pm)\s/i))) { let h = +m[1] % 12; if (m[3].toLowerCase() === 'pm') h += 12; time = `${pad(h)}:${m[2] || '00'}`; }
+ if (take(/\s(today|tonight)\s/i)) date = new Date(TODAY);
+ else if (take(/\s(tomorrow|tmrw|tmr)\s/i)) date = addDays(TODAY, 1);
+ else if ((m = take(/\s(?:on\s|next\s)?(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s/i))) { const i = ['mon','tue','wed','thu','fri','sat','sun'].indexOf(m[1].toLowerCase()); date = addDays(TODAY, ((i - dow(TODAY) + 7) % 7) || 7); }
+ else if ((m = take(/\s(?:on\s)?(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?\s/))) { let y = m[3] ? +m[3] : TODAY.getFullYear(); if (y < 100) y += 2000; const c = new Date(y, +m[2] - 1, +m[1]); if (!isNaN(c)) date = !m[3] && c < TODAY ? new Date(y + 1, +m[2] - 1, +m[1]) : c; }
+ else if ((m = take(/\sin (\d+) days?\s/i))) date = addDays(TODAY, +m[1]);
+ const cat = (CAT_WORDS.find(([re]) => re.test(text)) || [0,'Personal'])[1];
+ const t = s.replace(/\s(at|on)\s*$/i, ' ').replace(/\s+/g, ' ').trim();
+ return {t: t ? t[0].toUpperCase() + t.slice(1) : '', date:key(date), time, repeat, cat};
+}
+function previewQuick(inp, out){
+ const v = inp.value.trim(), el = document.getElementById(out); if (!el) return;
+ if (!v) { el.innerHTML = ''; return; }
+ const q = parseQuick(v), d = parse(q.date);
+ el.innerHTML = `<span class="chip strong">${esc(q.t || '...')}</span><span class="chip">${daysBetween(TODAY,d) === 0 ? 'Today' : daysBetween(TODAY,d) === 1 ? 'Tomorrow' : fmt(d)}</span>${q.time ? `<span class="chip">${q.time}</span>` : ''}<span class="chip">${q.cat}</span>${q.repeat !== 'none' ? `<span class="chip">${q.repeat}</span>` : ''}`;
+}
+function addQuick(inp){
+ const q = parseQuick(inp.value); if (!q.t) { inp.focus(); return; }
+ S.tasks.push({id:uid(), t:q.t, date:q.date, time:q.time, cat:q.cat, repeat:q.repeat, doneOn:{}, u:now()});
+ save(); inp.value = ''; document.getElementById('sheet') && document.getElementById('sheet').classList.add('hide');
+ renderAll(); toast(`Added: ${q.t}, ${fmt(parse(q.date))}${q.time ? ' ' + q.time : ''}`);
+}
+function quickCard(){ return `<div class="card"><h2>Quick add</h2><input type="text" id="qa" class="qa" placeholder='Type naturally: "gym tomorrow 18:00", "call supervisor fri 10am weekly", "INL homework 12/11"' autocomplete="off"><div class="qa-prev" id="qa-prev"></div><div class="row" style="justify-content:space-between"><span class="muted small">Press Enter to add. Press N anywhere to open quick add.</span><button class="btn primary" data-qa="add-inline">Add</button></div></div>`; }
+
+/* focused time vs. what the plan schedules this week */
+function focusCard(){
+ const mon = monday(TODAY), ids = ['study','uni','gym','french'];
+ const rows = ids.map(id => { let plan = 0, done = 0; for (let i = 0; i < 7; i++) { const d = addDays(mon,i), x = schedule(d)[id]; if (x && habitsFor(d).some(h => h.id === id)) plan += x.e - x.s; done += ((peekDay(key(d)).mins || {})[id] || 0); } return {id, plan, done}; }).filter(r => r.plan);
+ return `<div class="card"><h2>Focused time this week</h2>${rows.map(r => { const p = Math.min(100, Math.round(100*r.done/r.plan)); return `<div class="spread small" style="margin-top:10px"><span>${HNAME[r.id]}</span><span class="muted">${fmtDur(r.done)} of ${fmtDur(r.plan)} planned</span></div><div class="bar"><i style="width:${p}%"></i></div>`; }).join('')}<p class="muted small">Counted by the focus timer. Start it with the play button on any block.</p></div>`;
+}
+
+document.addEventListener('click', e => {
+ const t = e.target.closest('[data-focus],[data-fact],[data-rest],[data-qa]'); if (!t) return; const ds = t.dataset;
+ if (ds.focus) return openFocus(ds.focus, ds.k || key(viewDate));
+ if (ds.fact === 'pause' && F) { F.running = !F.running; F.last = Date.now(); keepAwake(F.running); return paintFocus(); }
+ if (ds.fact === 'done') return closeFocus(true);
+ if (ds.fact === 'stop') return closeFocus(false);
+ if (ds.rest === 'add' && R) { R.end += 30000; return paintRest(); }
+ if (ds.rest === 'skip') { R = null; return document.getElementById('rest').classList.add('hide'); }
+ if (ds.qa === 'open') { ensureLiveUI(); document.getElementById('sheet').classList.remove('hide'); return setTimeout(() => document.getElementById('qs').focus(), 50); }
+ if (ds.qa === 'close') return document.getElementById('sheet').classList.add('hide');
+ if (ds.qa === 'add-sheet') return addQuick(document.getElementById('qs'));
+ if (ds.qa === 'add-inline') return addQuick(document.getElementById('qa'));
+});
+document.addEventListener('input', e => { if (e.target.id === 'qa') previewQuick(e.target, 'qa-prev'); if (e.target.id === 'qs') previewQuick(e.target, 'qs-prev'); });
+document.addEventListener('keydown', e => {
+ if (e.key === 'Enter' && (e.target.id === 'qa' || e.target.id === 'qs')) return addQuick(e.target);
+ if (e.key === 'Escape') { const sh = document.getElementById('sheet'); if (sh) sh.classList.add('hide'); }
+ const typing = /INPUT|TEXTAREA|SELECT/.test(e.target.tagName);
+ if (!typing && !F && (e.key === 'n' || e.key === 'N')) { e.preventDefault(); document.querySelector('[data-qa=open]').click(); }
+ if (!typing && !F && tab === 'today' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { viewDate = addDays(viewDate, e.key === 'ArrowRight' ? 1 : -1); renderAll(); }
+});
+ensureLiveUI();
+
 renderAll();
 </script>
 </body>
