@@ -371,14 +371,14 @@ const AIGP = {
 '2026-11-12':'The AI lifecycle and where governance checkpoints sit',
 '2026-11-13':'AI risks and harms: one real example each',
 '2026-11-14':'2h: OECD, UNESCO, Council of Europe principles; governance roles; 25 Domain I questions',
-'2026-11-15':'1.5h: review the week; map the DBG AI Hub and ambassadors to governance roles; redo misses',
+'2026-11-15':'1.5h: review the week; map your AI hub and ambassador network to governance roles; redo misses',
 '2026-11-16':'AI Act: structure, Art. 3 definitions, Art. 2 scope, Art. 4 AI literacy',
 '2026-11-17':'AI Act Art. 5: the eight prohibited practices and exceptions',
 '2026-11-18':'High-risk: Art. 6, Annex I and Annex III (credit scoring, employment)',
 '2026-11-19':'High-risk requirements, Arts. 9-15',
 '2026-11-20':'Provider duties (Arts. 16, 43, 72, 73); deployer duties (Art. 26) and FRIA (Art. 27)',
 '2026-11-21':'2h: Art. 50 transparency, GPAI Arts. 51-55, penalties, timeline; 25 questions',
-'2026-11-22':'1.5h: GDPR and AI (Arts. 5, 6, 22, 35); classify your 24 DBG use cases',
+'2026-11-22':'1.5h: GDPR and AI (Arts. 5, 6, 22, 35); classify your 24 work use cases',
 '2026-11-23':'NIST AI RMF: Govern, Map, Measure, Manage and the 7 trustworthiness traits',
 '2026-11-24':'NIST AI 600-1 GenAI Profile: the 12 risks, one example each from your agents',
 '2026-11-25':'ISO/IEC 42001 clauses 4-10 and the AI impact assessment',
@@ -410,7 +410,7 @@ const LATER_STUDY = {
  'AZ-104':['Microsoft Learn AZ-104: one module + its lab','Microsoft Learn AZ-104: one module + its lab','Hands-on lab in your own subscription','Microsoft Learn AZ-104: one module + its lab','Recap: 20 practice questions','2h: 40 practice questions + review','1h: review notes, plan next week'],
  'AZ-305':['AZ-305 learning path: one module','Design exercise: sketch one architecture','AZ-305 learning path: one module','Case-study questions (10)','Recap: 20 practice questions','2h: 40 practice questions + review','1h: review notes, plan next week'],
  'CISM':['CISM Review Manual: one section','25 CISM practice questions + explanations','CISM Review Manual: one section','25 CISM practice questions + explanations','Flashcards: weak domain','2h: 60 practice questions','1h: review mistakes, plan next week'],
- 'AAISM':['AAISM content: one section','20 practice questions','AAISM content: one section','Map one topic to your DBG work','20 practice questions','2h: practice exam block','1h: review mistakes, plan next week']
+ 'AAISM':['AAISM content: one section','20 practice questions','AAISM content: one section','Map one topic to your day job','20 practice questions','2h: practice exam block','1h: review mistakes, plan next week']
 };
 const UNI_W1 = {
 '2026-11-09':'Collect all thesis files, code and notes into one folder',
@@ -1170,7 +1170,7 @@ setInterval(() => {
 setInterval(() => { if (tab === 'today' && !F) renderNow(); }, 30000);
 
 /* quick add: understands "tomorrow", weekdays, 12/11, 18:00, 6pm, daily, weekly */
-const CAT_WORDS = [[/\b(gym|workout|run|swim|lift|training)\b/i,'Gym'],[/\b(aigp|study|exam|cism|azure|az-\d+|iso|aaism)\b/i,'Study'],[/\b(thesis|uni|paper|supervisor|experiment|chapter)\b/i,'Uni'],[/\b(french|inl|anki|delf|tandem)\b/i,'French'],[/\b(meeting|office|work|dbg|workshop|email)\b/i,'Work']];
+const CAT_WORDS = [[/\b(gym|workout|run|swim|lift|training)\b/i,'Gym'],[/\b(aigp|study|exam|cism|azure|az-\d+|iso|aaism)\b/i,'Study'],[/\b(thesis|uni|paper|supervisor|experiment|chapter)\b/i,'Uni'],[/\b(french|inl|anki|delf|tandem)\b/i,'French'],[/\b(meeting|office|work|workshop|email)\b/i,'Work']];
 function parseQuick(text){
  let s = ` ${text.trim()} `, date = new Date(TODAY), time = '', repeat = 'none', m;
  const take = re => { const r = s.match(re); if (r) s = s.replace(r[0], ' '); return r; };
