@@ -68,7 +68,7 @@ button{font:inherit;color:inherit}
 .alert.good{border-left-color:var(--good)}
 .alert.info{border-left-color:var(--accent)}
 /* day plan */
-.block{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:start;padding:14px 0;border-top:1px solid var(--line-2)}
+.block{display:grid;grid-template-columns:96px 1fr auto;gap:14px;align-items:start;padding:14px 0;border-top:1px solid var(--line-2)}
 .block:first-of-type{border-top:0;padding-top:4px}
 .time{font-variant-numeric:tabular-nums;color:var(--ink-3);font-size:13px;font-weight:550;padding-top:2px}
 .block .title{font-weight:650;font-size:15.5px;letter-spacing:-.005em}
@@ -181,6 +181,10 @@ table.goals tr.late input[data-gf=due]{color:var(--bad);font-weight:600}
 .sday.sel b{color:#fff}
 .sday.sel i{background:linear-gradient(90deg,#7ee2a5 calc(var(--p)*1%),rgba(255,255,255,.2) 0)}
 @media (max-width:420px){.strip{gap:4px}.strip .ibtn{width:26px}.sday{border-radius:12px}}
+.block.fixed{padding:9px 0}
+.block.fixed .title{color:var(--ink-3);font-weight:550;font-size:14px}
+.block.fixed.work .title{color:var(--ink-2)}
+.block.fixed.class .title{color:var(--accent-ink)}
 </style>
 </head>
 <body>
@@ -216,7 +220,7 @@ table.goals tr.late input[data-gf=due]{color:var(--bad);font-weight:600}
 <script>
 /* ---------- storage ---------- */
 const KEY = 'improvement-plan-v1';
-function fresh(){ return {v:2, settings:{gymTime:'morning', classDays:[], weight:'', driveClientId:'', u:0}, days:{}, weeks:{}, goals:defaultGoals(), tasks:[]}; }
+function fresh(){ return {v:2, settings:{weight:'', driveClientId:'', u:0}, days:{}, weeks:{}, goals:defaultGoals(), tasks:[]}; }
 function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) { if (!s.goals) s.goals = defaultGoals(); if (!s.tasks) s.tasks = []; s.v = 2; return s; } } catch(e){} return fresh(); }
 function saveLocal(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
 function save(){ saveLocal(); schedulePush(); }
@@ -454,19 +458,88 @@ function getDay(k){ return S.days[k] || (S.days[k] = {checks:{}, lifts:{}, sleep
 function peekDay(k){ return S.days[k] || {checks:{}, lifts:{}}; }
 const isDeload = d => weekIndex(d) >= 0 && weekIndex(d) % 6 === 5;
 
-function times(d){
- const wd = dow(d), morning = S.settings.gymTime !== 'evening';
- if (wd === 5) return {gym:'09:00', study:'10:30', uni:'14:00', french:'16:00'};
- if (wd === 6) return {gym:'10:00', study:'11:00', uni:'14:00', french:'16:00'};
- return morning ? {gym:'06:30', study:'19:00', uni:'20:15', french:'08:00'} : {gym:'18:00', study:'19:30', uni:'20:45', french:'08:00'};
+/* ---------- the day's timetable, built around your office hours and INL classes ---------- */
+const DEF = {workStart:'08:00', workEnd:'17:00', commute:50, officeDays:[1,2,3], gymClose:'22:00', bed:'23:00', trainUni:true,
+             classDays:[0,2,3], classOnline:[3], classStart:'18:00', classEnd:'19:30', classTravel:15};
+const SET = k => { const v = S.settings[k]; return v === undefined || v === '' || v === null ? DEF[k] : v; };
+const T = s => { const [h,m] = String(s).split(':').map(Number); return h*60 + (m||0); };
+const hm = m => `${pad(Math.floor(m/60) % 24)}:${pad(m % 60)}`;
+const rng = x => x ? `${hm(x.s)}-${hm(x.e)}` : '';
+const isWorkday = d => dow(d) < 5 && !peekDay(key(d)).off;
+const isOffice = d => isWorkday(d) && SET('officeDays').includes(dow(d)) && !peekDay(key(d)).home;
+function classFor(d){
+ const wd = dow(d); if (!SET('classDays').includes(wd) || d < START) return null;
+ return {s:T(SET('classStart')), e:T(SET('classEnd')), online:SET('classOnline').includes(wd)};
+}
+function studyMinutes(d, p){ const wd = dow(d), free = !isWorkday(d); if (!p.study) return 0; return p.id === 'aigp' ? (wd === 6 ? 90 : free ? 120 : 60) : (free && wd !== 6 ? 120 : 60); }
+function fitIn(busy, from, len, limit){
+ let s = from;
+ for (let guard = 0; guard < 50; guard++){
+   const hit = busy.find(b => s < b.e + 5 && s + len > b.s - 5);
+   if (!hit) return s + len <= limit ? s : null;
+   s = hit.e + 5;
+ }
+ return null;
+}
+function permutations(a){ if (a.length <= 1) return [a]; return a.flatMap((x,i) => permutations([...a.slice(0,i), ...a.slice(i+1)]).map(r => [x, ...r])); }
+function schedule(d){
+ const p = phaseFor(d), wd = dow(d), out = {fixed:[], notes:[]}, fm = frenchTask(d,p).m, sm = studyMinutes(d,p);
+ const close = T(SET('gymClose')), bed = T(SET('bed')), wind = bed - 30, cls = classFor(d), trav = +SET('classTravel') || 0;
+ const put = (id, s, len, where) => (out[id] = {s, e:s+len, where});
+ const busy = [];
+ const fix = (s, e, label, kind) => { const f = {s, e, label, kind}; out.fixed.push(f); busy.push(f); return f; };
+ let t, want = [];
+ if (!isWorkday(d)) {
+   t = wd === 6 ? 600 : 540;
+   if (cls) { fix(cls.s, cls.e, cls.online ? 'INL French class on Teams' : 'INL French class at Belval', 'class'); if (!cls.online) { fix(cls.s-trav, cls.s, 'Travel to INL Belval', 'commute'); fix(cls.e, cls.e+trav, 'Travel home', 'commute'); } put('french', cls.s, cls.e-cls.s, cls.online ? 'on Teams' : 'at Belval'); }
+   want = ['gym', ...(sm ? ['study'] : []), ...(p.uni ? ['uni'] : []), ...(cls ? [] : ['french'])];
+   let cur = t;
+   for (const id of want) { const len = id === 'gym' ? 60 : id === 'study' ? sm : id === 'uni' ? 60 : fm; const s = fitIn(busy, cur, len, wind); if (s === null) continue; put(id, s, len); busy.push(out[id]); cur = s + len + (id === 'study' ? 90 : 30); }
+ } else {
+   const ws = T(SET('workStart')), we = T(SET('workEnd')), cm = +SET('commute') || 0, office = isOffice(d) && cm > 0;
+   fix(ws, we, office ? 'Work at the office (Kirchberg)' : 'Work from home', 'work');
+   if (office) {
+     fix(ws-cm, ws, 'Commute to Kirchberg', 'commute');
+     if (cls && !cls.online) { fix(we, we+cm, 'Train to INL Belval', 'commute'); fix(cls.e, cls.e+trav, 'Home from Belval', 'commute'); }
+     else fix(we, we+cm, 'Commute home', 'commute');
+     if (!cls) put('french', ws-cm+5, Math.min(fm, cm-10), 'on the morning train');
+     if (p.uni && SET('trainUni')) put('uni', we+5, Math.max(25, cm-10), 'on the train');
+     t = we + cm + 5;
+   } else {
+     if (p.uni) put('uni', ws-60, 60, 'before work');
+     if (!cls) put('french', 12*60+30, Math.min(fm, 30), 'at lunch');
+     if (cls && !cls.online) { fix(cls.s-trav, cls.s, 'Travel to INL Belval', 'commute'); fix(cls.e, cls.e+trav, 'Home from Belval', 'commute'); }
+     t = we + 5;
+   }
+   if (cls) { fix(cls.s, cls.e, cls.online ? 'INL French class on Teams' : 'INL French class at Belval', 'class'); put('french', cls.s, cls.e-cls.s, cls.online ? 'on Teams' : 'at Belval'); }
+   if (out.uni) busy.push(out.uni);
+   want = ['gym', 'dinner', ...(sm ? ['study'] : []), ...(p.uni && !out.uni ? ['uni'] : [])];
+   const lens = {gym:60, dinner:35, study:sm, uni:60};
+   let best = null;
+   for (const order of permutations(want)) {
+     const b = busy.slice(), placed = {}; let cur = t;
+     for (const id of order) { const lim = id === 'gym' ? close - 10 : wind; const s = fitIn(b, cur, lens[id], lim); if (s === null) continue; placed[id] = {s, e:s+lens[id]}; b.push(placed[id]); cur = s + lens[id]; }
+     const n = Object.keys(placed).length, end = Math.max(0, ...Object.values(placed).map(x => x.e)), score = (placed.dinner ? 20000 : 0) + n*10000 + (placed.gym ? 5000 : 0) + (placed.study ? 3000 : 0) - end;
+     if (!best || score > best.score) best = {score, placed};
+   }
+   for (const [id, x] of Object.entries(best.placed)) { if (id === 'dinner') fix(x.s, x.e, 'Dinner', 'meal'); else out[id] = x; }
+   if (sm && !out.study) { put('study', 12*60+15, Math.min(sm, 45), 'at lunch'); out.notes.push('Busy evening, so your study block moves to lunch today (45 min).'); }
+   if (!out.gym) { put('gym', Math.max(t, close-40), 30); out.notes.push('No full hour for the gym before it closes. Do the 30-min minimum version tonight.'); }
+   if (p.uni && !out.uni) { put('uni', ws-45, 45, 'before work'); out.notes.push('Thesis moves to the morning before work today.'); }
+   const first = Math.min(...[...out.fixed.map(f => f.s), ...['gym','study','uni','french'].filter(k => out[k]).map(k => out[k].s)]);
+   out.wake = first - 30;
+ }
+ out.fixed.push({s:wind, e:bed, label:'Screens off, wind down', kind:'sleep'});
+ if (!out.french) put('french', 16*60, fm);
+ return out;
 }
 function frenchTask(d, p){
- const wd = dow(d);
- if ((S.settings.classDays||[]).includes(wd)) return {t:'INL class + homework the same evening', m:p.french};
- if (p.french <= 15) return {t:'10 min Anki vocabulary + 5 min listening', m:15};
+ const wd = dow(d), c = SET('classDays').includes(wd) && d >= START;
+ if (c) return {t: SET('classOnline').includes(wd) ? 'Camera on, notebook ready. Do the homework the same evening or on the next train.' : 'Bring the book and your Anki phone deck. Homework on your next train ride.', m:T(SET('classEnd'))-T(SET('classStart'))};
+ if (p.french <= 15) return {t:'10 min Anki vocabulary + 5 min listening (headphones)', m:15};
  if (wd === 5) return {t:'TV5Monde lesson at your level + grammar review', m:45};
  if (wd === 6) return {t:'Conversation (tutor or tandem) or a graded reader', m:30};
- return {t:'10 min Anki, 10 min listening, 10 min writing 3-5 sentences read aloud', m:p.french};
+ return {t:'10 min Anki, 10 min listening, 10 min writing 3-5 sentences', m:p.french};
 }
 function studyTask(d, p){
  const k = key(d);
@@ -479,18 +552,18 @@ function uniTask(d, p){
  const rot = UNI_ROT[p.uni]; return rot ? rot[dow(d)] : '';
 }
 function habitsFor(d){
- const p = phaseFor(d), t = times(d), wd = dow(d), g = WORKOUTS[GYM_BY_DOW[wd]], list = [];
- const studyMins = p.id === 'aigp' ? (wd === 5 ? 120 : wd === 6 ? 90 : 60) : (wd === 5 ? 120 : 60);
+ const p = phaseFor(d), t = schedule(d), wd = dow(d), g = WORKOUTS[GYM_BY_DOW[wd]], list = [];
+ const sm = studyMinutes(d,p);
  if (key(d) === '2026-12-18') {
-   list.push({id:'study', time:'Exam', title:'AIGP EXAM', detail:'Log in 30 minutes early. About 1.5 min per question; flag and come back.', min:'You prepared. Trust it.'});
-   list.push({id:'gym', time:'Evening', title:'Gym: easy walk to celebrate', detail:'30-45 min walk.', min:'10 min walk'});
+   list.push({id:'study', s:540, time:'Exam slot', title:'AIGP EXAM', detail:'Log in 30 minutes early. About 1.5 min per question; flag and come back.', min:'You prepared. Trust it.'});
+   list.push({id:'gym', s:1140, time:'Evening', title:'Gym: easy walk to celebrate', detail:'30-45 min walk.', min:'10 min walk'});
    return list;
  }
- list.push({id:'gym', time:t.gym, title:`Gym: ${g.name}${isDeload(d) && g.ex ? ' (deload week)' : ''}`, detail: g.ex ? (isDeload(d) ? 'Deload: 2 sets per exercise, same weights, stop 3 reps before failure.' : '8 min warm-up, the lifts below, 5 min cool-down.') : g.cardio, min:'Minimum: 20-min full-body circuit or a 30-min brisk walk', workout: g.ex ? GYM_BY_DOW[wd] : null});
- if (p.study) list.push({id:'study', time:t.study, title:`${p.study} (${studyMins} min)`, detail:studyTask(d,p), min:'Minimum: one 25-min block on today\'s topic'});
- if (p.uni) list.push({id:'uni', time:p.study ? t.uni : t.study, title:'Uni: thesis (60 min)', detail:uniTask(d,p), min:'Minimum: 25 min that ends in one visible output (a paragraph, a commit, a note)'});
- const f = frenchTask(d,p);
- list.push({id:'french', time:t.french, title:`French (${f.m} min)`, detail:f.t, min:'Minimum: 5 min of Anki'});
+ list.push({id:'gym', s:t.gym.s, time:rng(t.gym), title:`Gym: ${g.name}${isDeload(d) && g.ex ? ' (deload week)' : ''}`, detail: g.ex ? (isDeload(d) ? 'Deload: 2 sets per exercise, same weights, stop 3 reps before failure.' : '8 min warm-up, the lifts below, 5 min cool-down.') : g.cardio, min:'Minimum: 20-min full-body circuit or a 30-min brisk walk', workout: g.ex ? GYM_BY_DOW[wd] : null});
+ if (p.study) list.push({id:'study', s:t.study.s, time:rng(t.study), title:`${p.study}${t.study.where ? ' ' + t.study.where : ''} (${t.study.e - t.study.s} min)`, detail:studyTask(d,p), min:'Minimum: one 25-min block on today\'s topic'});
+ if (p.uni) { const u = t.uni, len = u.e - u.s; list.push({id:'uni', s:u.s, time:rng(u), title:`Uni: thesis${u.where ? ' ' + u.where : ''} (${len} min)`, detail: uniTask(d,p) + (u.where === 'on the way home' ? '. Offline on the laptop: download papers and data the night before.' : ''), min:'Minimum: 25 min that ends in one visible output (a paragraph, a commit, a note)'}); }
+ const f = frenchTask(d,p), fr = t.french;
+ list.push({id:'french', s:fr.s, time:rng(fr), title: classFor(d) ? `INL French class ${fr.where}` : `French${fr.where ? ' ' + fr.where : ''} (${fr.e - fr.s} min)`, detail:f.t, min:'Minimum: 5 min of Anki'});
  return list;
 }
 const planned = (d, h) => habitsFor(d).some(x => x.id === h);
@@ -596,11 +669,16 @@ function renderToday(){
    if (keys.length) { const behind = keys.length - done; alerts.push(behind > 1 ? {c:'warn', t:`AIGP pace: ${done} of ${keys.length} study days done so far. You're ${behind} days behind; use Saturday's 2h block to catch up the most important one.`} : {c:'good', t:`AIGP pace: ${done} of ${keys.length} study days done. On track.`}); }
  }
  const r = readiness(day); if (r) alerts.push(r);
+ const sc = schedule(d);
+ sc.notes.forEach(n => alerts.push({c:'warn', t:n}));
  h += alerts.map(a => `<div class="alert ${a.c}">${esc(a.t)}</div>`).join('');
- h += `<div class="card"><h2>Check-in</h2><div class="row small"><label>Sleep last night <input class="n" type="number" step="0.25" min="0" max="14" data-f="sleep" value="${esc(day.sleep)}"> h</label>
- <span>Energy</span><div class="seg">${[1,2,3,4,5].map(n => `<button data-energy="${n}" class="${day.energy === n ? 'on' : ''}">${n}</button>`).join('')}</div></div></div>`;
- h += `<div class="card"><h2>Plan for the day</h2>`;
- hs.forEach(x => {
+ h += `<div class="card"><h2>Check-in</h2><div class="row small"><label style="margin:0">Sleep last night <input class="n" type="number" step="0.25" min="0" max="14" data-f="sleep" value="${esc(day.sleep)}"> h</label>
+ <span>Energy</span><div class="seg">${[1,2,3,4,5].map(n => `<button data-energy="${n}" class="${day.energy === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+ ${dow(d) < 5 ? `<div class="row small" style="margin-top:10px"><label style="margin:0"><input type="checkbox" data-off ${day.off ? 'checked' : ''}> Day off work</label>${SET('officeDays').includes(dow(d)) ? `<label style="margin:0"><input type="checkbox" data-home ${day.home ? 'checked' : ''}> Working from home today</label>` : ''}</div>` : ''}</div>`;
+ h += `<div class="card"><h2>Plan for the day</h2>${sc.wake ? `<div class="muted small" style="margin:-4px 0 6px">Wake up around ${hm(sc.wake)}</div>` : ''}`;
+ const rows = [...hs.map(x => ({...x, row:'habit'})), ...sc.fixed.filter(f => f.kind !== 'class').map(f => ({...f, row:'fixed', time:rng(f)}))].sort((a,b) => a.s - b.s);
+ rows.forEach(x => {
+   if (x.row === 'fixed') { h += `<div class="block fixed ${x.kind}"><div class="time">${esc(x.time)}</div><div><div class="title">${esc(x.label)}</div></div><div></div></div>`; return; }
    const v = day.checks[x.id];
    h += `<div class="block"><div class="time">${esc(x.time)}</div><div><div class="title">${esc(x.title)}</div><div class="detail">${esc(x.detail)}</div><div class="min">${esc(x.min)}</div></div>
    <button class="check ${stateClass(v)}" data-check="${x.id}" aria-label="${stateLabel(v)}"><span class="lab">${v === undefined ? '' : stateLabel(v)}</span><span class="dot"></span></button></div>`;
@@ -760,12 +838,21 @@ function renderProgress(){
 function renderPlan(){
  const cur = phaseFor(TODAY);
  let h = `<div class="card"><h2>Phases</h2><table><tr><th>Dates</th><th>Phase</th><th>Exam study</th><th>Uni</th><th>French</th></tr>${PHASES.map(p => `<tr style="${p === cur ? 'font-weight:650' : ''}"><td>${fmt(parse(p.from))} - ${fmt(parse(p.to))} ${parse(p.from).getFullYear()}</td><td>${esc(p.name)}${p === cur ? ' &larr; now' : ''}</td><td>${p.study || 'none'}</td><td>${p.uni ? {restart:'Thesis restart',thesis:'Thesis, daily',defence:'Defence prep'}[p.uni] : 'done'}</td><td>${p.french} min</td></tr>`).join('')}</table></div>`;
- h += `<div class="card"><h2>Weekly template</h2><table><tr><th>Day</th><th>Gym (60 min)</th><th>Study</th><th>Uni</th><th>French</th></tr>${DOW.map((n,i) => { const d = addDays(monday(TODAY), i), t = times(d); return `<tr><td>${n}</td><td>${t.gym} · ${WORKOUTS[GYM_BY_DOW[i]].name}</td><td>${phaseFor(d).study ? t.study : '-'}</td><td>${phaseFor(d).uni ? (phaseFor(d).study ? t.uni : t.study) : '-'}</td><td>${t.french}</td></tr>`; }).join('')}</table>
- <p class="muted small">Weekdays with a morning gym: wake 06:00, gym 06:30, French on the commute, study 19:00, uni 20:15, screens off 22:30, sleep by 23:00.</p></div>`;
- h += `<div class="card"><h2>Settings</h2>
- <div class="row" style="margin-bottom:10px"><span>Gym time</span><div class="seg"><button data-gym="morning" class="${S.settings.gymTime !== 'evening' ? 'on' : ''}">Morning</button><button data-gym="evening" class="${S.settings.gymTime === 'evening' ? 'on' : ''}">Evening</button></div></div>
- <div class="row" style="margin-bottom:10px"><span>INL class days</span>${DOW.map((n,i) => `<label class="small"><input type="checkbox" data-cls="${i}" ${(S.settings.classDays||[]).includes(i) ? 'checked' : ''}> ${n}</label>`).join('')}</div>
- <div class="row" style="margin-bottom:10px"><label>Body weight <input class="n" type="number" data-weight value="${esc(S.settings.weight)}"> kg</label><span class="muted small">for the protein target</span></div>
+ h += `<div class="card"><h2>Your week</h2><div class="scroll"><table class="xl"><tr><th class="lbl">Day</th><th>Work</th><th>INL</th><th>Gym</th><th>Study</th><th>Thesis</th><th>French</th><th>Wake</th></tr>${DOW.map((n,i) => { const d = addDays(monday(TODAY), i), t = schedule(d), w = t.fixed.find(f => f.kind === 'work'), c = classFor(d); return `<tr><td class="lbl">${n}</td><td style="padding:0 8px">${w ? (isOffice(d) ? 'Office ' : 'Home ') + rng(w) : '-'}</td><td style="padding:0 8px">${c ? (c.online ? 'Teams ' : 'Belval ') + rng(c) : '-'}</td><td style="padding:0 8px">${t.gym ? rng(t.gym) : '-'}</td><td style="padding:0 8px">${t.study ? rng(t.study) : '-'}</td><td style="padding:0 8px">${t.uni ? rng(t.uni) : '-'}</td><td style="padding:0 8px">${c ? 'class' : t.french ? rng(t.french) : '-'}</td><td style="padding:0 8px">${t.wake ? hm(t.wake) : '-'}</td></tr>`; }).join('')}</table></div>
+ <p class="muted small">Built from the settings below. Change your hours, office days or class times and every day re-plans itself.</p></div>`;
+ const tm = k => `<input type="time" data-set="${k}" value="${esc(SET(k))}">`, nm = (k, w) => `<input class="n" type="number" min="0" max="180" data-set="${k}" value="${esc(SET(k))}" style="width:${w||70}px">`;
+ const days = (k, upto) => DOW.slice(0, upto).map((n,i) => `<label class="small" style="margin:0"><input type="checkbox" data-setday="${k}" data-i="${i}" ${SET(k).includes(i) ? 'checked' : ''}> ${n}</label>`).join('');
+ h += `<div class="card"><h2>Work and commute</h2>
+ <div class="row" style="margin-bottom:12px"><span class="small">Office hours</span>${tm('workStart')}<span>to</span>${tm('workEnd')}</div>
+ <div class="row" style="margin-bottom:12px"><span class="small">Office days (Kirchberg)</span>${days('officeDays', 5)}</div>
+ <div class="row" style="margin-bottom:12px"><span class="small">Commute each way</span>${nm('commute')}<span class="small">min</span><label class="small" style="margin:0"><input type="checkbox" data-setbool="trainUni" ${SET('trainUni') ? 'checked' : ''}> Use the train home for thesis work</label></div>
+ <div class="row"><span class="small">Gym closes</span>${tm('gymClose')}<span class="small">Bedtime</span>${tm('bed')}</div></div>`;
+ h += `<div class="card"><h2>INL French classes</h2>
+ <div class="row" style="margin-bottom:12px"><span class="small">Class days</span>${days('classDays', 7)}</div>
+ <div class="row" style="margin-bottom:12px"><span class="small">Online (Teams)</span>${days('classOnline', 7)}</div>
+ <div class="row"><span class="small">Time</span>${tm('classStart')}<span>to</span>${tm('classEnd')}<span class="small">Travel to Belval</span>${nm('classTravel')}<span class="small">min</span></div></div>`;
+ h += `<div class="card"><h2>Other</h2>
+ <div class="row" style="margin-bottom:10px"><label style="margin:0">Body weight <input class="n" type="number" data-weight value="${esc(S.settings.weight)}"> kg</label><span class="muted small">for the protein target</span></div>
  <div class="row"><button class="btn" data-act="reset">Reset all data</button></div></div>`;
  let syncMsg = ''; try { syncMsg = localStorage.getItem(KEY+'-sync') || ''; } catch(e){}
  h += `<div class="card"><h2>Google Drive</h2>
@@ -884,6 +971,11 @@ document.addEventListener('change', e => {
  if (ds.b3 !== undefined) { const w = touch(weekData(weekView)); w.big3[+ds.b3].done = t.checked; save(); return; }
  if (ds.b3t !== undefined) { const w = touch(weekData(weekView)); w.big3[+ds.b3t].t = t.value; save(); return; }
  if (ds.rv) { const w = touch(weekData(weekView)); w.review[ds.rv] = t.value; save(); return; }
+ if (ds.set) { S.settings[ds.set] = t.type === 'number' ? +t.value : t.value; touch(S.settings); save(); return renderAll(); }
+ if (ds.setday) { const k = ds.setday, i = +ds.i, c = SET(k).slice(); const n = t.checked ? [...new Set([...c, i])].sort() : c.filter(x => x !== i); S.settings[k] = n; touch(S.settings); save(); return renderAll(); }
+ if (ds.setbool) { S.settings[ds.setbool] = t.checked; touch(S.settings); save(); return renderAll(); }
+ if (t.hasAttribute('data-off')) { const day = touch(getDay(key(viewDate))); day.off = t.checked; save(); return renderAll(); }
+ if (t.hasAttribute('data-home')) { const day = touch(getDay(key(viewDate))); day.home = t.checked; save(); return renderAll(); }
  if (ds.cls !== undefined) { const i = +ds.cls, c = S.settings.classDays || (S.settings.classDays = []); if (t.checked && !c.includes(i)) c.push(i); if (!t.checked) S.settings.classDays = c.filter(x => x !== i); touch(S.settings); save(); return; }
  if (ds.weight !== undefined) { S.settings.weight = t.value; touch(S.settings); save(); return; }
  if (ds.clientid !== undefined) { S.settings.driveClientId = t.value.trim(); touch(S.settings); saveLocal(); renderHeader(); return; }
