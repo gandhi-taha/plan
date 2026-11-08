@@ -459,8 +459,10 @@ function peekDay(k){ return S.days[k] || {checks:{}, lifts:{}}; }
 const isDeload = d => weekIndex(d) >= 0 && weekIndex(d) % 6 === 5;
 
 /* ---------- the day's timetable, built around your office hours and INL classes ---------- */
-const DEF = {workStart:'08:00', workEnd:'17:00', commute:50, officeDays:[1,2,3], gymClose:'22:00', bed:'23:00', trainUni:true,
-             classDays:[0,2,3], classOnline:[3], classStart:'18:00', classEnd:'19:30', classTravel:15};
+const DEF = {workStart:'08:00', workEnd:'17:00', commute:50, officeDays:[1,3,4], gymClose:'22:00', bed:'23:00', trainUni:true,
+             classDays:[0,2,3], classOnline:[3], classStart:'17:15', classEnd:'18:55', classTravel:15, nextCourseFrom:'2027-02-01'};
+/* INL French A1 standard combined (FR0143-8351): 17:15, 1h40. 0 = Belval room C2.03.02, 1 = e-learning. Last class 28 Jan 2027. */
+const INL_A1 = {'2026-11-09':0,'2026-11-11':0,'2026-11-16':0,'2026-11-18':0,'2026-11-23':0,'2026-11-25':0,'2026-11-30':0,'2026-12-02':0,'2026-12-07':0,'2026-12-09':0,'2026-12-14':0,'2026-12-16':0,'2027-01-04':0,'2027-01-06':0,'2027-01-11':0,'2027-01-13':0,'2027-01-18':0,'2027-01-20':0,'2027-01-25':0,'2027-01-27':0,'2026-11-12':1,'2026-11-19':1,'2026-11-26':1,'2026-12-03':1,'2026-12-10':1,'2026-12-17':1,'2027-01-07':1,'2027-01-14':1,'2027-01-21':1,'2027-01-28':1};
 const SET = k => { const v = S.settings[k]; return v === undefined || v === '' || v === null ? DEF[k] : v; };
 const T = s => { const [h,m] = String(s).split(':').map(Number); return h*60 + (m||0); };
 const hm = m => `${pad(Math.floor(m/60) % 24)}:${pad(m % 60)}`;
@@ -468,8 +470,10 @@ const rng = x => x ? `${hm(x.s)}-${hm(x.e)}` : '';
 const isWorkday = d => dow(d) < 5 && !peekDay(key(d)).off;
 const isOffice = d => isWorkday(d) && SET('officeDays').includes(dow(d)) && !peekDay(key(d)).home;
 function classFor(d){
- const wd = dow(d); if (!SET('classDays').includes(wd) || d < START) return null;
- return {s:T(SET('classStart')), e:T(SET('classEnd')), online:SET('classOnline').includes(wd)};
+ const k = key(d), wd = dow(d);
+ if (k in INL_A1) { const on = !!INL_A1[k]; return {s:T('17:15'), e:T('18:55'), online:on, label: on ? 'INL French A1, e-learning' : 'INL French A1 at Belval (room C2.03.02)'}; }
+ if (k >= SET('nextCourseFrom') && SET('classDays').includes(wd)) { const on = SET('classOnline').includes(wd); return {s:T(SET('classStart')), e:T(SET('classEnd')), online:on, label: on ? 'INL French class, e-learning' : 'INL French class at Belval'}; }
+ return null;
 }
 function studyMinutes(d, p){ const wd = dow(d), free = !isWorkday(d); if (!p.study) return 0; return p.id === 'aigp' ? (wd === 6 ? 90 : free ? 120 : 60) : (free && wd !== 6 ? 120 : 60); }
 function fitIn(busy, from, len, limit){
@@ -491,27 +495,42 @@ function schedule(d){
  let t, want = [];
  if (!isWorkday(d)) {
    t = wd === 6 ? 600 : 540;
-   if (cls) { fix(cls.s, cls.e, cls.online ? 'INL French class on Teams' : 'INL French class at Belval', 'class'); if (!cls.online) { fix(cls.s-trav, cls.s, 'Travel to INL Belval', 'commute'); fix(cls.e, cls.e+trav, 'Travel home', 'commute'); } put('french', cls.s, cls.e-cls.s, cls.online ? 'on Teams' : 'at Belval'); }
+   if (cls) { fix(cls.s, cls.e, cls.label, 'class'); if (!cls.online) { fix(cls.s-trav, cls.s, 'Travel to INL Belval', 'commute'); fix(cls.e, cls.e+trav, 'Travel home', 'commute'); } put('french', cls.s, cls.e-cls.s, cls.online ? 'online' : 'at Belval'); }
    want = ['gym', ...(sm ? ['study'] : []), ...(p.uni ? ['uni'] : []), ...(cls ? [] : ['french'])];
    let cur = t;
    for (const id of want) { const len = id === 'gym' ? 60 : id === 'study' ? sm : id === 'uni' ? 60 : fm; const s = fitIn(busy, cur, len, wind); if (s === null) continue; put(id, s, len); busy.push(out[id]); cur = s + len + (id === 'study' ? 90 : 30); }
  } else {
-   const ws = T(SET('workStart')), we = T(SET('workEnd')), cm = +SET('commute') || 0, office = isOffice(d) && cm > 0;
+   let ws = T(SET('workStart')), we = T(SET('workEnd'));
+   const cm = +SET('commute') || 0, office = isOffice(d) && cm > 0;
+   if (office && cls && !cls.online) {
+     const shift = we - (cls.s - cm - 5);
+     if (shift > 0) { ws -= shift; we -= shift; out.notes.push(`Class at Belval at ${hm(cls.s)}: work ${hm(ws)}-${hm(we)} at the office so you can leave Kirchberg by ${hm(we)}, or tick "Working from home today".`); }
+   }
    fix(ws, we, office ? 'Work at the office (Kirchberg)' : 'Work from home', 'work');
    if (office) {
      fix(ws-cm, ws, 'Commute to Kirchberg', 'commute');
-     if (cls && !cls.online) { fix(we, we+cm, 'Train to INL Belval', 'commute'); fix(cls.e, cls.e+trav, 'Home from Belval', 'commute'); }
-     else fix(we, we+cm, 'Commute home', 'commute');
+     if (cls && !cls.online) {
+       fix(we, we+cm, 'Train to INL Belval', 'commute'); fix(cls.e, cls.e+trav, 'Home from Belval', 'commute');
+       if (p.uni && SET('trainUni')) put('uni', we+5, Math.max(25, cm-15), 'on the train');
+       t = cls.e + trav + 5;
+     } else if (cls && cls.online) {
+       fix(cls.e, cls.e+cm, 'Commute home', 'commute');
+       if (p.uni && SET('trainUni')) put('uni', cls.e+5, Math.max(25, cm-10), 'on the train');
+       out.notes.push(`E-learning class at ${hm(cls.s)}: join from a quiet room at the office, then take the train home.`);
+       t = cls.e + cm + 5;
+     } else {
+       fix(we, we+cm, 'Commute home', 'commute');
+       if (p.uni && SET('trainUni')) put('uni', we+5, Math.max(25, cm-10), 'on the train');
+       t = we + cm + 5;
+     }
      if (!cls) put('french', ws-cm+5, Math.min(fm, cm-10), 'on the morning train');
-     if (p.uni && SET('trainUni')) put('uni', we+5, Math.max(25, cm-10), 'on the train');
-     t = we + cm + 5;
    } else {
      if (p.uni) put('uni', ws-60, 60, 'before work');
      if (!cls) put('french', 12*60+30, Math.min(fm, 30), 'at lunch');
      if (cls && !cls.online) { fix(cls.s-trav, cls.s, 'Travel to INL Belval', 'commute'); fix(cls.e, cls.e+trav, 'Home from Belval', 'commute'); }
      t = we + 5;
    }
-   if (cls) { fix(cls.s, cls.e, cls.online ? 'INL French class on Teams' : 'INL French class at Belval', 'class'); put('french', cls.s, cls.e-cls.s, cls.online ? 'on Teams' : 'at Belval'); }
+   if (cls) { fix(cls.s, cls.e, cls.label, 'class'); put('french', cls.s, cls.e-cls.s, cls.online ? 'online' : 'at Belval'); }
    if (out.uni) busy.push(out.uni);
    want = ['gym', 'dinner', ...(sm ? ['study'] : []), ...(p.uni && !out.uni ? ['uni'] : [])];
    const lens = {gym:60, dinner:35, study:sm, uni:60};
@@ -534,8 +553,8 @@ function schedule(d){
  return out;
 }
 function frenchTask(d, p){
- const wd = dow(d), c = SET('classDays').includes(wd) && d >= START;
- if (c) return {t: SET('classOnline').includes(wd) ? 'Camera on, notebook ready. Do the homework the same evening or on the next train.' : 'Bring the book and your Anki phone deck. Homework on your next train ride.', m:T(SET('classEnd'))-T(SET('classStart'))};
+ const wd = dow(d), c = classFor(d);
+ if (c) return {t: c.online ? 'E-learning: headphones, notebook ready. Do the homework the same evening or on the next train.' : 'Bring the book and your phone deck. Homework on your next train ride.', m:c.e - c.s};
  if (p.french <= 15) return {t:'10 min Anki vocabulary + 5 min listening (headphones)', m:15};
  if (wd === 5) return {t:'TV5Monde lesson at your level + grammar review', m:45};
  if (wd === 6) return {t:'Conversation (tutor or tandem) or a graded reader', m:30};
@@ -847,10 +866,14 @@ function renderPlan(){
  <div class="row" style="margin-bottom:12px"><span class="small">Office days (Kirchberg)</span>${days('officeDays', 5)}</div>
  <div class="row" style="margin-bottom:12px"><span class="small">Commute each way</span>${nm('commute')}<span class="small">min</span><label class="small" style="margin:0"><input type="checkbox" data-setbool="trainUni" ${SET('trainUni') ? 'checked' : ''}> Use the train home for thesis work</label></div>
  <div class="row"><span class="small">Gym closes</span>${tm('gymClose')}<span class="small">Bedtime</span>${tm('bed')}</div></div>`;
+ const left = Object.keys(INL_A1).filter(k => k >= key(TODAY)).length;
  h += `<div class="card"><h2>INL French classes</h2>
+ <p class="small" style="margin-top:0"><b>French A1 standard combined (FR0143-8351)</b>, from your INL timetable: Mon and Wed 17:15-18:55 at Belval (room C2.03.02), Thu 17:15-18:55 e-learning. No classes 18 Dec - 3 Jan. Last class Thu 28 Jan 2027. <span class="muted">${left} classes left.</span></p>
+ <div class="row" style="margin-bottom:12px"><span class="small">Travel from home to Belval</span>${nm('classTravel')}<span class="small">min</span></div>
+ <h3>Next course (A2): rough plan until you have its timetable</h3>
+ <div class="row" style="margin-bottom:12px"><span class="small">Starts</span><input type="date" data-set="nextCourseFrom" value="${esc(SET('nextCourseFrom'))}"><span class="small">Time</span>${tm('classStart')}<span>to</span>${tm('classEnd')}</div>
  <div class="row" style="margin-bottom:12px"><span class="small">Class days</span>${days('classDays', 7)}</div>
- <div class="row" style="margin-bottom:12px"><span class="small">Online (Teams)</span>${days('classOnline', 7)}</div>
- <div class="row"><span class="small">Time</span>${tm('classStart')}<span>to</span>${tm('classEnd')}<span class="small">Travel to Belval</span>${nm('classTravel')}<span class="small">min</span></div></div>`;
+ <div class="row"><span class="small">E-learning days</span>${days('classOnline', 7)}</div></div>`;
  h += `<div class="card"><h2>Other</h2>
  <div class="row" style="margin-bottom:10px"><label style="margin:0">Body weight <input class="n" type="number" data-weight value="${esc(S.settings.weight)}"> kg</label><span class="muted small">for the protein target</span></div>
  <div class="row"><button class="btn" data-act="reset">Reset all data</button></div></div>`;
