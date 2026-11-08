@@ -1,24 +1,18 @@
-# Improvement Plan
+# Plan
 
-A personal planner and tracker for study, thesis, gym and French. It runs entirely in the browser,
-works offline, and installs on Android as an app. Progress syncs through your own Google Drive.
+A personal planner for study, a side project, the gym and a language course, built around office hours. It runs in the browser, works offline and installs on Android as an app.
 
-## Files
-- `index.html`: the whole app
-- `manifest.webmanifest`, `sw.js`, `icon-*.png`: let Android install it and run it offline
+## What it does
 
-## Use on a computer
-Open `index.html` in Chrome, Edge or Firefox. Data is saved in that browser.
+- Builds each day around work hours, commute and evening classes, and moves things when a day gets too full
+- Live "now / next" view, a focus timer with Pomodoro blocks, and a rest timer for the gym
+- Quick add in plain English ("gym tomorrow 18:00", "call supervisor fri 10am weekly")
+- Habit sheet and goals tracker in a spreadsheet layout, weekly review, streaks
 
-## Install on Android
-1. Create a public GitHub repository named `plan` and upload these files.
-2. In the repository: Settings > Pages > Deploy from branch > `main` / root.
-3. On your phone, open `https://gandhi-taha.github.io/plan/` in Chrome, then menu > Add to Home screen.
+## Private by design
 
-The repository holds only the app code. Your progress is never in it.
+The code here is generic. My own plan (dates, classes, goals) is in `vault.json`, encrypted with AES-256-GCM using a key derived from a passphrase (PBKDF2-SHA256, 600,000 rounds). The app asks for the passphrase and decrypts the plan in the browser. Progress is stored on the device and, optionally, in a hidden app folder in my own Google Drive.
 
-## Google Drive sync
-- **No setup:** Plan & settings > "Save backup to Drive" (Android share menu > Drive) and "Load backup from Drive".
-- **Automatic:** create a free Google OAuth client ID (steps are in the app under Plan & settings > Google Drive),
-  with your GitHub Pages address as an authorised JavaScript origin. Paste it in the app and tap Connect & sync on each device.
-  The app only gets access to its own hidden app-data folder in your Drive.
+## Run it
+
+Open `index.html` through any static server, for example `python3 -m http.server`, then visit http://localhost:8000.

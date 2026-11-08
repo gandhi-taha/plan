@@ -234,7 +234,19 @@ input.qa,#qs{width:100%;font-size:16px;padding:12px 14px}
 .hide.focus,.hide.rest,.hide.sheet,.hide.toast{display:none}
 @media (min-width:900px){.fab{bottom:28px;right:28px}.rest{bottom:28px}.sheet{align-items:center}.sheet-in{border-radius:20px}}
 @media (max-width:620px){.now-grid{grid-template-columns:auto 1fr}.now-act{grid-column:1/-1}.now-act .btn{width:100%}}
+.lock{position:fixed;inset:0;z-index:80;background:var(--bg);display:grid;place-items:center;padding:24px}
+.lock-in{width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px}
+.lock-in img{border-radius:16px;margin-bottom:6px}
+.lock-in h1{font-size:26px;letter-spacing:-.02em;margin:0}
+.lock-in p{margin:0;color:var(--ink-2)}
+.lock-in input{width:100%;font-size:16px;padding:12px 14px;text-align:center}
+.lock-in .btn{width:100%;padding:12px}
+.lock-err{color:var(--bad);min-height:20px;font-size:14px}
+.lock-note{font-size:12.5px;color:var(--ink-3)!important}
+.lock-home{font-size:13px;color:var(--ink-3);margin-top:10px}
+.lock.hide{display:none}
 </style>
+
 
 </head>
 <body>
@@ -271,7 +283,9 @@ input.qa,#qs{width:100%;font-size:16px;padding:12px 14px}
 /* ---------- storage ---------- */
 const KEY = 'improvement-plan-v1';
 function fresh(){ return {v:2, settings:{weight:'', driveClientId:'', u:0}, days:{}, weeks:{}, goals:defaultGoals(), tasks:[]}; }
-function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) { if (!s.goals) s.goals = defaultGoals(); if (!s.tasks) s.tasks = []; s.v = 2; return s; } } catch(e){} return fresh(); }
+const SETUP = (() => { try { const r = JSON.parse(localStorage.getItem('improvement-plan-v1')); return (r && r.setup) || null; } catch(e) { return null; } })();
+const U = SETUP || {};
+function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) { if (!s.goals || !s.goals.length) s.goals = defaultGoals(); if (!s.tasks) s.tasks = []; s.v = 2; return s; } } catch(e){} return fresh(); }
 function saveLocal(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
 function save(){ saveLocal(); schedulePush(); }
 const now = () => Date.now();
@@ -283,7 +297,8 @@ function mergeLists(x, y){ const m = {}; [...(x||[]), ...(y||[])].forEach(it => 
 function merge(a, b){
  const sa = a.settings || {}, sb = b.settings || {};
  const settings = (sb.u||0) > (sa.u||0) ? {...sb, driveClientId: sa.driveClientId || sb.driveClientId} : sa;
- return {v:2, settings, days:mergeMaps(a.days,b.days), weeks:mergeMaps(a.weeks,b.weeks), goals:mergeLists(a.goals,b.goals), tasks:mergeLists(a.tasks,b.tasks)};
+ const setup = ((b.setup && b.setup.u) || 0) > ((a.setup && a.setup.u) || 0) ? b.setup : a.setup;
+ return {v:2, settings, setup, days:mergeMaps(a.days,b.days), weeks:mergeMaps(a.weeks,b.weeks), goals:mergeLists(a.goals,b.goals), tasks:mergeLists(a.tasks,b.tasks)};
 }
 
 /* ---------- Google Drive sync (your own Drive, hidden app folder, no other service) ---------- */
@@ -322,9 +337,11 @@ async function syncNow(interactive){
  if (syncing) return; syncing = true; setSyncStatus('Syncing with Google Drive...');
  try {
    const t = await getToken(interactive), f = await driveFind(t);
+   const before = JSON.stringify(S.setup || null);
    if (f) S = merge(S, await driveRead(t, f.id));
    await driveWrite(t, f && f.id, S); saveLocal();
    setSyncStatus('Synced with Google Drive at ' + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}));
+   if (JSON.stringify(S.setup || null) !== before) return location.reload();
    renderAll();
  } catch(e) { setSyncStatus('Not synced: ' + e.message); }
  finally { syncing = false; }
@@ -347,80 +364,19 @@ const fmt = d => d.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', m
 const fmtLong = d => d.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
 const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
-const START = parse('2026-11-09');
+const START = U.start ? parse(U.start) : (() => { const t = new Date(); t.setHours(0,0,0,0); return addDays(t, -((t.getDay()+6)%7)); })();
 const weekIndex = d => Math.floor((monday(d) - START) / (7*864e5));
 const daysBetween = (a,b) => Math.round((b - a)/864e5);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 /* ---------- plan data ---------- */
-const PHASES = [
- {id:'aigp',  from:'2026-11-09', to:'2026-12-18', name:'AIGP sprint',          study:'AIGP exam prep', uni:'restart', french:15},
- {id:'hol',   from:'2026-12-19', to:'2027-01-03', name:'Holiday reset',        study:null,              uni:'restart', french:30},
- {id:'thesis',from:'2027-01-04', to:'2027-06-30', name:'Thesis focus',         study:null,              uni:'thesis',  french:30, note:'ISO 42001 course: one week in May, in work time'},
- {id:'az104', from:'2027-07-01', to:'2027-09-24', name:'Azure AZ-104',         study:'AZ-104',          uni:'defence', french:30},
- {id:'az305', from:'2027-09-25', to:'2027-12-17', name:'AZ-305 + French B1',   study:'AZ-305',          uni:null,      french:30},
- {id:'cism',  from:'2027-12-18', to:'2028-04-28', name:'CISM',                 study:'CISM',            uni:null,      french:20},
- {id:'aaism', from:'2028-04-29', to:'2028-07-31', name:'AAISM',                study:'AAISM',           uni:null,      french:20}
-];
+const PHASES = U.phases && U.phases.length ? U.phases : [{id:'base', from:'2000-01-01', to:'2099-12-31', name:'Your plan', study:'Study', uni:'thesis', french:15, sundayStudy:60}];
 const phaseFor = d => { const k = key(d); return PHASES.find(p => k >= p.from && k <= p.to) || (k < PHASES[0].from ? PHASES[0] : PHASES[PHASES.length-1]); };
 
-const AIGP = {
-'2026-11-09':'Setup: ask your manager about funding, book the exam for 17/18 Dec, download the Body of Knowledge and handbook',
-'2026-11-10':'Skim the whole Body of Knowledge; mark each topic green, amber or red',
-'2026-11-11':'AI basics: ML types, deep learning, generative AI and LLMs',
-'2026-11-12':'The AI lifecycle and where governance checkpoints sit',
-'2026-11-13':'AI risks and harms: one real example each',
-'2026-11-14':'2h: OECD, UNESCO, Council of Europe principles; governance roles; 25 Domain I questions',
-'2026-11-15':'1.5h: review the week; map your AI hub and ambassador network to governance roles; redo misses',
-'2026-11-16':'AI Act: structure, Art. 3 definitions, Art. 2 scope, Art. 4 AI literacy',
-'2026-11-17':'AI Act Art. 5: the eight prohibited practices and exceptions',
-'2026-11-18':'High-risk: Art. 6, Annex I and Annex III (credit scoring, employment)',
-'2026-11-19':'High-risk requirements, Arts. 9-15',
-'2026-11-20':'Provider duties (Arts. 16, 43, 72, 73); deployer duties (Art. 26) and FRIA (Art. 27)',
-'2026-11-21':'2h: Art. 50 transparency, GPAI Arts. 51-55, penalties, timeline; 25 questions',
-'2026-11-22':'1.5h: GDPR and AI (Arts. 5, 6, 22, 35); classify your 24 work use cases',
-'2026-11-23':'NIST AI RMF: Govern, Map, Measure, Manage and the 7 trustworthiness traits',
-'2026-11-24':'NIST AI 600-1 GenAI Profile: the 12 risks, one example each from your agents',
-'2026-11-25':'ISO/IEC 42001 clauses 4-10 and the AI impact assessment',
-'2026-11-26':'ISO/IEC 42001 Annex A; ISO/IEC 23894 and 22989',
-'2026-11-27':'Laws outside the EU: US (Colorado, NYC LL144, FTC), China, Singapore, Canada, UK',
-'2026-11-28':'2h: product liability, consumer, anti-discrimination, IP; 25 Domain II questions',
-'2026-11-29':'1.5h: write the one-page framework comparison; review the mistakes note',
-'2026-11-30':'Governing development 1: intake, impact assessments, stakeholders',
-'2026-12-01':'Governing development 2: data governance, privacy by design, model cards',
-'2026-12-02':'Testing: bias, robustness, red teaming, release readiness',
-'2026-12-03':'Governing deployment: vendors, contracts, controls, human oversight',
-'2026-12-04':'After go-live: monitoring, incidents, audits, retirement (light day)',
-'2026-12-05':'2h45: PRACTICE TEST 1, timed, exam conditions',
-'2026-12-06':'1.5h: review every wrong answer; rank the four domains',
-'2026-12-07':'Re-study your weakest domain',
-'2026-12-08':'Re-study your second-weakest domain; reread AI Act Arts. 5, 6, 16, 26',
-'2026-12-09':'1h45: PRACTICE TEST 2, timed',
-'2026-12-10':'Review test 2 mistakes',
-'2026-12-11':'20 scenario questions only (read the question before the case)',
-'2026-12-12':'2h45: PRACTICE TEST 3, full and timed',
-'2026-12-13':'1.5h: review test 3; build the one-page cheat sheet',
-'2026-12-14':'Cheat sheet + 25 questions from your weakest domain',
-'2026-12-15':'High-yield AI Act articles and the four NIST functions',
-'2026-12-16':'30 min cheat sheet; OnVUE system test; clear desk, check ID and webcam',
-'2026-12-17':'Rest. Read the cheat sheet once in the evening',
-'2026-12-18':'EXAM DAY: log in 30 minutes early'
-};
-const LATER_STUDY = {
- 'AZ-104':['Microsoft Learn AZ-104: one module + its lab','Microsoft Learn AZ-104: one module + its lab','Hands-on lab in your own subscription','Microsoft Learn AZ-104: one module + its lab','Recap: 20 practice questions','2h: 40 practice questions + review','1h: review notes, plan next week'],
- 'AZ-305':['AZ-305 learning path: one module','Design exercise: sketch one architecture','AZ-305 learning path: one module','Case-study questions (10)','Recap: 20 practice questions','2h: 40 practice questions + review','1h: review notes, plan next week'],
- 'CISM':['CISM Review Manual: one section','25 CISM practice questions + explanations','CISM Review Manual: one section','25 CISM practice questions + explanations','Flashcards: weak domain','2h: 60 practice questions','1h: review mistakes, plan next week'],
- 'AAISM':['AAISM content: one section','20 practice questions','AAISM content: one section','Map one topic to your day job','20 practice questions','2h: practice exam block','1h: review mistakes, plan next week']
-};
-const UNI_W1 = {
-'2026-11-09':'Collect all thesis files, code and notes into one folder',
-'2026-11-10':'Write a 1-page status: done, missing, open questions',
-'2026-11-11':'Email your supervisor: ask for a meeting, propose submitting by 30 Jun 2027',
-'2026-11-12':'Rebuild the Python environment; run the old code once',
-'2026-11-13':'List the 10 most important papers on LLM bug detection',
-'2026-11-14':'Read one paper (abstract, method, results); 5-line note',
-'2026-11-15':'Weekly review: pick next week\'s 3 thesis tasks'
-};
+const STUDY_TASKS = U.studyTasks || {};
+const LATER_STUDY = U.studyRotation || {};
+const GENERIC_STUDY = ['One topic: read, then write a 5-line summary','Practice questions + review the mistakes','One topic: read, then write a 5-line summary','Practice questions + review the mistakes','Recap the week in your own words','2h: longer practice block','1h: review notes, plan next week'];
+const UNI_W1 = U.uniTasks || {};
 const UNI_ROT = {
  restart:['Read: one paper or section, 5-line summary','Code: get one experiment step running; log the result','Write: 300 words (outline or related work)','Code: next experiment step; commit with a clear message','Write: 300 words; tidy references','Deep block: the hardest thesis task of the week','Weekly thesis review + plan next week'],
  thesis:['Read: one paper or section, 5-line summary','Experiment: run, log, compare to baseline','Write: 400 words','Experiment: next run or ablation','Write: 400 words; update figures','Deep block: the hardest thesis task of the week','Weekly thesis review + send progress to supervisor every 2nd week'],
@@ -432,62 +388,24 @@ const WORKOUTS = {
  zone2:{name:'Zone 2 cardio + mobility', cardio:'40 min bike, incline walk or rower at a pace where you can still talk in full sentences, then 15 min mobility (hips, upper back, shoulders).'},
  upperB:{name:'Upper B (volume)', ex:[['incline','Incline dumbbell press (per hand)',3,8,10,2],['pullup','Pull-up (use assistance if needed)',3,6,10,2.5],['dbpress','Seated dumbbell shoulder press (per hand)',3,10,12,2],['csrow','Chest-supported row',3,10,12,2.5],['facepull','Face pull',2,15,20,2.5],['arms','Curl + pushdown superset',2,12,15,1]]},
  lowerB:{name:'Lower B (volume)', ex:[['deadlift','Deadlift (trap bar or conventional)',3,4,6,5],['bss','Bulgarian split squat (per hand)',3,8,10,2],['thrust','Hip thrust',3,8,10,5],['legext','Leg extension',2,12,15,2.5],['calf2','Calf raise',3,12,15,5],['knee','Hanging knee raise',3,10,15,0]]},
- swim:{name:'Swim', cardio:'45-60 min: 300 m easy, 6 x 100 m steady (20 s rest), 4 x 50 m fast, 200 m easy. Technique first; your competition background is an advantage here.'},
+ swim:{name:'Swim', cardio:'45-60 min: 300 m easy, 6 x 100 m steady (20 s rest), 4 x 50 m fast, 200 m easy. Technique first.'},
  walk:{name:'Active recovery', cardio:'30-45 min walk outside + 10 min stretching. Rest is part of the plan.'}
 };
 const GYM_BY_DOW = ['upperA','lowerA','zone2','upperB','lowerB','swim','walk'];
-const BIG3 = {
-'2026-11-09':['Book the AIGP exam and ask for funding','Restart the thesis: status page + supervisor email','4 lifting sessions + 1 swim'],
-'2026-11-16':['Finish the EU AI Act week','Thesis: environment runs the old baseline','Log every lift'],
-'2026-11-23':['Write the one-page framework comparison','Thesis: read 2 papers with notes','6 activity days'],
-'2026-11-30':['Practice test 1 done and reviewed','Thesis outline v1','Gym: beat 2 lifts from week 1'],
-'2026-12-07':['80%+ on practice test 3','Related-work draft: 1 page','5 gym sessions'],
-'2026-12-14':['Pass AIGP','Agree the January thesis plan with your supervisor','Deload week: easy gym, 8h sleep'],
-'2026-12-21':['Rest properly','Thesis: experiment plan for January','French: finish the A1 review'],
-'2026-12-28':['Plan 2027 Q1 in this page','Thesis: first experiment run','Gym: back to the full program']
-};
-const BIG3_PHASE = {
- aigp:['AIGP: finish this week\'s plan','Thesis: one visible output','Gym: 5 sessions'],
- hol:['Rest','Thesis: one visible output','French: 30 min a day'],
- thesis:['Thesis: 1,200 words or one finished experiment','French: 6 of 7 days','Gym: 5 sessions'],
- az104:['AZ-104: 4 modules + labs','Thesis defence: one rehearsal','Gym: 5 sessions'],
- az305:['AZ-305: 3 modules','French B1: one DELF practice section','Gym: 5 sessions'],
- cism:['CISM: 100 practice questions','French: keep 20 min a day','Gym: 5 sessions'],
- aaism:['AAISM: 80 practice questions','French: one conversation','Gym: 5 sessions']
-};
+const BIG3 = U.big3 || {};
+const BIG3_PHASE = U.big3Phase || {};
+const BIG3_DEFAULT = ['Main study goal for the week','One visible output on your main project','Gym: 4-5 sessions'];
 const HNAME = {gym:'Gym', study:'Exam study', uni:'Uni (thesis)', french:'French'};
 
 /* goals sheet: the whole roadmap as tickable rows; three rows fill themselves from your daily checks */
-const GOAL_SEED = [
- ['Career','Ask your manager to fund AIGP and ISO 42001','2026-11-13'],
- ['AIGP','Book the AIGP exam (17 or 18 Dec)','2026-11-13'],
- ['AIGP','Complete the 40-day AIGP study plan','2026-12-18','aigp',40],
- ['AIGP','Pass AIGP','2026-12-18'],
- ['Thesis','Agree thesis scope and submission date with supervisor','2027-01-08'],
- ['Career','Add AIGP to CV and LinkedIn','2027-01-15'],
- ['French','Pass INL A1','2027-01-31'],
- ['Cert','Book the ISO 42001 Lead Implementer course (employer-funded)','2027-03-15'],
- ['Thesis','Literature review and experiment setup done','2027-03-31'],
- ['Cert','ISO 42001 Lead Implementer exam','2027-05-31'],
- ['Thesis','Submit the thesis','2027-06-30'],
- ['French','Pass INL A2','2027-06-30'],
- ['Cert','AZ-104 exam','2027-09-24'],
- ['Thesis','Thesis defence','2027-09-30'],
- ['French','Register for DELF B1 (December session)','2027-09-30'],
- ['Cert','AZ-305 exam (Azure Solutions Architect Expert)','2027-12-10'],
- ['French','Pass DELF B1','2027-12-31'],
- ['Fitness','200 gym sessions','2027-12-31','gym',200],
- ['French','300 French practice days','2027-12-31','french',300],
- ['Cert','CISM exam','2028-04-28'],
- ['Cert','AAISM exam','2028-07-28']
-];
+const GOAL_SEED = U.goals || [];
 function defaultGoals(){ return GOAL_SEED.map((g,i) => ({id:'g'+(i+1), area:g[0], t:g[1], due:g[2], auto:g[3]||null, target:g[4]||null, status:'Not started', pct:0, done:false, u:0})); }
-const AREAS = ['AIGP','Cert','Thesis','French','Fitness','Career','Personal'];
+const AREAS = [...new Set(['Study','Cert','Thesis','French','Fitness','Career','Personal', ...GOAL_SEED.map(g => g[0])])];
 const STATUSES = ['Not started','In progress','Done'];
 function goalPct(g){
  if (g.done) return 100;
  if (g.auto) {
-   const n = g.auto === 'aigp' ? Object.keys(AIGP).filter(k => (peekDay(k).checks.study||0) > 0).length
+   const n = (g.auto !== 'gym' && g.auto !== 'french') ? Object.keys(STUDY_TASKS).filter(k => (peekDay(k).checks.study||0) > 0).length
            : Object.keys(S.days).filter(k => k >= '2026-11-09' && (S.days[k].checks[g.auto]||0) > 0).length;
    return Math.min(100, Math.round(100*n/g.target));
  }
@@ -508,12 +426,14 @@ function getDay(k){ return S.days[k] || (S.days[k] = {checks:{}, lifts:{}, sleep
 function peekDay(k){ return S.days[k] || {checks:{}, lifts:{}}; }
 const isDeload = d => weekIndex(d) >= 0 && weekIndex(d) % 6 === 5;
 
-/* ---------- the day's timetable, built around your office hours and INL classes ---------- */
-const DEF = {workStart:'08:00', workEnd:'17:00', commute:50, officeDays:[1,3,4], gymClose:'22:00', bed:'23:00', trainUni:true,
-             classDays:[0,2,3], classOnline:[3], classStart:'17:15', classEnd:'18:55', classTravel:15, nextCourseFrom:'2027-02-01'};
-/* INL French A1 standard combined (FR0143-8351): 17:15, 1h40. 0 = Belval room C2.03.02, 1 = e-learning. Last class 28 Jan 2027. */
-const INL_A1 = {'2026-11-09':0,'2026-11-11':0,'2026-11-16':0,'2026-11-18':0,'2026-11-23':0,'2026-11-25':0,'2026-11-30':0,'2026-12-02':0,'2026-12-07':0,'2026-12-09':0,'2026-12-14':0,'2026-12-16':0,'2027-01-04':0,'2027-01-06':0,'2027-01-11':0,'2027-01-13':0,'2027-01-18':0,'2027-01-20':0,'2027-01-25':0,'2027-01-27':0,'2026-11-12':1,'2026-11-19':1,'2026-11-26':1,'2026-12-03':1,'2026-12-10':1,'2026-12-17':1,'2027-01-07':1,'2027-01-14':1,'2027-01-21':1,'2027-01-28':1};
-const SET = k => { const v = S.settings[k]; return v === undefined || v === '' || v === null ? DEF[k] : v; };
+/* ---------- the day's timetable, built around your office hours and classes ---------- */
+const DEF = {workStart:'09:00', workEnd:'17:30', commute:30, officeDays:[0,1,2,3,4], officePlace:'', gymClose:'22:00', bed:'23:00', trainUni:true,
+             classDays:[], classOnline:[], classStart:'18:00', classEnd:'19:30', classTravel:15, nextCourseFrom:'2099-01-01'};
+const CLASS = U.classes || null, CLASS_DATES = (CLASS && CLASS.dates) || {}, CLASS_PLACE = (CLASS && CLASS.place) || '';
+const CLASS_NAME = (CLASS && CLASS.label) || 'Class';
+const toClass = CLASS_PLACE ? `Travel to class (${CLASS_PLACE})` : 'Travel to class', fromClass = 'Home from class', atClass = CLASS_PLACE ? `at ${CLASS_PLACE}` : 'in person';
+const officeName = () => SET('officePlace') || 'the office';
+const SET = k => { const v = S.settings[k]; if (v !== undefined && v !== '' && v !== null) return v; const u = U.defaults && U.defaults[k]; return u !== undefined ? u : DEF[k]; };
 const T = s => { const [h,m] = String(s).split(':').map(Number); return h*60 + (m||0); };
 const hm = m => `${pad(Math.floor(m/60) % 24)}:${pad(m % 60)}`;
 const rng = x => x ? `${hm(x.s)}-${hm(x.e)}` : '';
@@ -521,11 +441,11 @@ const isWorkday = d => dow(d) < 5 && !peekDay(key(d)).off;
 const isOffice = d => isWorkday(d) && SET('officeDays').includes(dow(d)) && !peekDay(key(d)).home;
 function classFor(d){
  const k = key(d), wd = dow(d);
- if (k in INL_A1) { const on = !!INL_A1[k]; return {s:T('17:15'), e:T('18:55'), online:on, label: on ? 'INL French A1, e-learning' : 'INL French A1 at Belval (room C2.03.02)'}; }
- if (k >= SET('nextCourseFrom') && SET('classDays').includes(wd)) { const on = SET('classOnline').includes(wd); return {s:T(SET('classStart')), e:T(SET('classEnd')), online:on, label: on ? 'INL French class, e-learning' : 'INL French class at Belval'}; }
+ if (k in CLASS_DATES) { const on = !!CLASS_DATES[k]; return {s:T(CLASS.start || '18:00'), e:T(CLASS.end || '19:30'), online:on, label: on ? `${CLASS_NAME}, online` : `${CLASS_NAME} ${atClass}${CLASS.room ? ` (room ${CLASS.room})` : ''}`}; }
+ if (k >= SET('nextCourseFrom') && SET('classDays').includes(wd)) { const on = SET('classOnline').includes(wd); return {s:T(SET('classStart')), e:T(SET('classEnd')), online:on, label: on ? 'Class, online' : `Class ${atClass}`}; }
  return null;
 }
-function studyMinutes(d, p){ const wd = dow(d), free = !isWorkday(d); if (!p.study) return 0; return p.id === 'aigp' ? (wd === 6 ? 90 : free ? 120 : 60) : (free && wd !== 6 ? 120 : 60); }
+function studyMinutes(d, p){ const wd = dow(d), free = !isWorkday(d); if (!p.study) return 0; return wd === 6 ? (p.sundayStudy || 60) : free ? 120 : 60; }
 function fitIn(busy, from, len, limit){
  let s = from;
  for (let guard = 0; guard < 50; guard++){
@@ -545,7 +465,7 @@ function schedule(d){
  let t, want = [];
  if (!isWorkday(d)) {
    t = wd === 6 ? 600 : 540;
-   if (cls) { fix(cls.s, cls.e, cls.label, 'class'); if (!cls.online) { fix(cls.s-trav, cls.s, 'Travel to INL Belval', 'commute'); fix(cls.e, cls.e+trav, 'Travel home', 'commute'); } put('french', cls.s, cls.e-cls.s, cls.online ? 'online' : 'at Belval'); }
+   if (cls) { fix(cls.s, cls.e, cls.label, 'class'); if (!cls.online) { fix(cls.s-trav, cls.s, toClass, 'commute'); fix(cls.e, cls.e+trav, fromClass, 'commute'); } put('french', cls.s, cls.e-cls.s, cls.online ? 'online' : atClass); }
    want = ['gym', ...(sm ? ['study'] : []), ...(p.uni ? ['uni'] : []), ...(cls ? [] : ['french'])];
    let cur = t;
    for (const id of want) { const len = id === 'gym' ? 60 : id === 'study' ? sm : id === 'uni' ? 60 : fm; const s = fitIn(busy, cur, len, wind); if (s === null) continue; put(id, s, len); busy.push(out[id]); cur = s + len + (id === 'study' ? 90 : 30); }
@@ -554,13 +474,13 @@ function schedule(d){
    const cm = +SET('commute') || 0, office = isOffice(d) && cm > 0;
    if (office && cls && !cls.online) {
      const shift = we - (cls.s - cm - 5);
-     if (shift > 0) { ws -= shift; we -= shift; out.notes.push(`Class at Belval at ${hm(cls.s)}: work ${hm(ws)}-${hm(we)} at the office so you can leave Kirchberg by ${hm(we)}, or tick "Working from home today".`); }
+     if (shift > 0) { ws -= shift; we -= shift; out.notes.push(`Class ${atClass} at ${hm(cls.s)}: work ${hm(ws)}-${hm(we)} today so you can leave ${officeName()} by ${hm(we)}, or tick "Working from home today".`); }
    }
-   fix(ws, we, office ? 'Work at the office (Kirchberg)' : 'Work from home', 'work');
+   fix(ws, we, office ? `Work at ${officeName()}` : 'Work from home', 'work');
    if (office) {
-     fix(ws-cm, ws, 'Commute to Kirchberg', 'commute');
+     fix(ws-cm, ws, `Commute to ${officeName()}`, 'commute');
      if (cls && !cls.online) {
-       fix(we, we+cm, 'Train to INL Belval', 'commute'); fix(cls.e, cls.e+trav, 'Home from Belval', 'commute');
+       fix(we, we+cm, toClass, 'commute'); fix(cls.e, cls.e+trav, fromClass, 'commute');
        if (p.uni && SET('trainUni')) put('uni', we+5, Math.max(25, cm-15), 'on the train');
        t = cls.e + trav + 5;
      } else if (cls && cls.online) {
@@ -577,10 +497,10 @@ function schedule(d){
    } else {
      if (p.uni) put('uni', ws-60, 60, 'before work');
      if (!cls) put('french', 12*60+30, Math.min(fm, 30), 'at lunch');
-     if (cls && !cls.online) { fix(cls.s-trav, cls.s, 'Travel to INL Belval', 'commute'); fix(cls.e, cls.e+trav, 'Home from Belval', 'commute'); }
+     if (cls && !cls.online) { fix(cls.s-trav, cls.s, toClass, 'commute'); fix(cls.e, cls.e+trav, fromClass, 'commute'); }
      t = we + 5;
    }
-   if (cls) { fix(cls.s, cls.e, cls.label, 'class'); put('french', cls.s, cls.e-cls.s, cls.online ? 'online' : 'at Belval'); }
+   if (cls) { fix(cls.s, cls.e, cls.label, 'class'); put('french', cls.s, cls.e-cls.s, cls.online ? 'online' : atClass); }
    if (out.uni) busy.push(out.uni);
    want = ['gym', 'dinner', ...(sm ? ['study'] : []), ...(p.uni && !out.uni ? ['uni'] : [])];
    const lens = {gym:60, dinner:35, study:sm, uni:60};
@@ -612,8 +532,8 @@ function frenchTask(d, p){
 }
 function studyTask(d, p){
  const k = key(d);
- if (p.id === 'aigp') return AIGP[k] || 'Plan starts Monday 9 Nov. Read the "How to" tab.';
- const list = LATER_STUDY[p.study]; return list ? list[dow(d)] : '';
+ if (STUDY_TASKS[k]) return STUDY_TASKS[k];
+ const list = LATER_STUDY[p.study] || GENERIC_STUDY; return list[dow(d)];
 }
 function uniTask(d, p){
  const k = key(d);
@@ -623,8 +543,8 @@ function uniTask(d, p){
 function habitsFor(d){
  const p = phaseFor(d), t = schedule(d), wd = dow(d), g = WORKOUTS[GYM_BY_DOW[wd]], list = [];
  const sm = studyMinutes(d,p);
- if (key(d) === '2026-12-18') {
-   list.push({id:'study', s:540, time:'Exam slot', title:'AIGP EXAM', detail:'Log in 30 minutes early. About 1.5 min per question; flag and come back.', min:'You prepared. Trust it.'});
+ if (U.examDay && key(d) === U.examDay.date) {
+   list.push({id:'study', s:540, time:'Exam slot', title:U.examDay.title || 'Exam', detail:U.examDay.detail || 'Arrive early. Flag hard questions and come back to them.', min:'You prepared. Trust it.'});
    list.push({id:'gym', s:1140, time:'Evening', title:'Gym: easy walk to celebrate', detail:'30-45 min walk.', min:'10 min walk'});
    return list;
  }
@@ -632,7 +552,7 @@ function habitsFor(d){
  if (p.study) list.push({id:'study', s:t.study.s, time:rng(t.study), title:`${p.study}${t.study.where ? ' ' + t.study.where : ''} (${t.study.e - t.study.s} min)`, detail:studyTask(d,p), min:'Minimum: one 25-min block on today\'s topic'});
  if (p.uni) { const u = t.uni, len = u.e - u.s; list.push({id:'uni', s:u.s, time:rng(u), title:`Uni: thesis${u.where ? ' ' + u.where : ''} (${len} min)`, detail: uniTask(d,p) + (u.where === 'on the way home' ? '. Offline on the laptop: download papers and data the night before.' : ''), min:'Minimum: 25 min that ends in one visible output (a paragraph, a commit, a note)'}); }
  const f = frenchTask(d,p), fr = t.french;
- list.push({id:'french', s:fr.s, time:rng(fr), title: classFor(d) ? `INL French class ${fr.where}` : `French${fr.where ? ' ' + fr.where : ''} (${fr.e - fr.s} min)`, detail:f.t, min:'Minimum: 5 min of Anki'});
+ list.push({id:'french', s:fr.s, time:rng(fr), title: classFor(d) ? `${CLASS_NAME} ${fr.where}` : `French${fr.where ? ' ' + fr.where : ''} (${fr.e - fr.s} min)`, detail:f.t, min:'Minimum: 5 min of Anki'});
  return list;
 }
 const planned = (d, h) => habitsFor(d).some(x => x.id === h);
@@ -701,7 +621,7 @@ function insights(mon){
 }
 function weekData(mon){
  const mk = key(mon);
- if (!S.weeks[mk]) { const def = BIG3[mk] || BIG3_PHASE[phaseFor(mon).id]; S.weeks[mk] = {big3:def.map(t => ({t, done:false})), review:{wins:'', block:'', change:''}}; }
+ if (!S.weeks[mk]) { const def = BIG3[mk] || BIG3_PHASE[phaseFor(mon).id] || BIG3_DEFAULT; S.weeks[mk] = {big3:def.map(t => ({t, done:false})), review:{wins:'', block:'', change:''}}; }
  return S.weeks[mk];
 }
 
@@ -709,12 +629,11 @@ function weekData(mon){
 let viewDate = new Date(TODAY), weekView = monday(TODAY), tab = 'today';
 const TITLES = {today:'Today', planner:'Planner', tracker:'Tracker', week:'Week', progress:'Progress', plan:'Plan & settings', guide:'How to'};
 function renderHeader(){
- const exam = parse('2026-12-18'), delf = parse('2027-12-01'), d = tab === 'today' ? viewDate : TODAY, off = daysBetween(TODAY, viewDate);
+ const d = tab === 'today' ? viewDate : TODAY, off = daysBetween(TODAY, viewDate);
  document.getElementById('eyebrow').textContent = d.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long'});
  document.getElementById('pagetitle').textContent = tab === 'today' && off !== 0 ? (off === 1 ? 'Tomorrow' : off === -1 ? 'Yesterday' : viewDate.toLocaleDateString('en-GB',{weekday:'long'})) : TITLES[tab];
  const bits = [phaseFor(d).name + (weekIndex(d) >= 0 ? `, week ${weekIndex(d)+1}` : '')];
- if (TODAY <= exam) bits.push(`${daysBetween(TODAY,exam)} days to AIGP`);
- bits.push(`DELF B1 in ~${Math.round(daysBetween(TODAY,delf)/30)} months`);
+ (U.countdowns || []).forEach(c => { const n = daysBetween(TODAY, parse(c.date)); if (n >= 0) bits.push(c.months ? `${c.label} in ~${Math.round(n/30)} months` : `${n} days to ${c.label}`); });
  if (isDeload(d)) bits.push('deload week');
  document.getElementById('sub').textContent = bits.join(' · ');
 }
@@ -730,13 +649,14 @@ function renderToday(){
  else h += `<div id="nowcard" class="card now"></div>`;
  const alerts = [];
  if (p.note) alerts.push({c:'info', t:p.note});
- if (d < START) alerts.push({c:'info', t:'The plan starts on Monday 9 November. Today: read the "How to" tab, pack your gym bag, set up Anki, and put your study blocks in your calendar.'});
+ if (d < START) alerts.push({c:'info', t:`The plan starts on ${fmtLong(START)}. Until then: read the "How to" tab, pack your gym bag, and put your study blocks in your calendar.`});
  const miss = key(d) === key(TODAY) ? missedYesterday(d) : [];
  if (miss.length) alerts.push({c:'bad', t:`Never miss twice: you missed ${miss.join(', ')} yesterday. Today at least the minimum version.`});
  if (isDeload(d)) alerts.push({c:'warn', t:'Deload week for the gym: 2 sets per exercise, same weights. You recover and come back stronger.'});
- if (p.id === 'aigp' && d >= START) {
-   const keys = Object.keys(AIGP).filter(x => x < key(TODAY)), done = keys.filter(x => (peekDay(x).checks.study || 0) > 0).length;
-   if (keys.length) { const behind = keys.length - done; alerts.push(behind > 1 ? {c:'warn', t:`AIGP pace: ${done} of ${keys.length} study days done so far. You're ${behind} days behind; use Saturday's 2h block to catch up the most important one.`} : {c:'good', t:`AIGP pace: ${done} of ${keys.length} study days done. On track.`}); }
+ const SPN = U.studyPlanName || 'Study plan';
+ if (Object.keys(STUDY_TASKS).length && d >= START && key(d) <= Object.keys(STUDY_TASKS).sort().pop()) {
+   const keys = Object.keys(STUDY_TASKS).filter(x => x < key(TODAY)), done = keys.filter(x => (peekDay(x).checks.study || 0) > 0).length;
+   if (keys.length) { const behind = keys.length - done; alerts.push(behind > 1 ? {c:'warn', t:`${SPN} pace: ${done} of ${keys.length} study days done so far. You're ${behind} days behind; use Saturday's 2h block to catch up the most important one.`} : {c:'good', t:`${SPN} pace: ${done} of ${keys.length} study days done. On track.`}); }
  }
  const r = readiness(day); if (r) alerts.push(r);
  const sc = schedule(d);
@@ -783,7 +703,7 @@ function taskRow(t, k){
 let plannerDays = 14;
 function renderPlanner(){
  let h = quickCard() + `<details class="card more"><summary>Add with all options</summary><div class="form" style="margin-top:12px">
- <input type="text" id="p-t" placeholder="What? e.g. Call supervisor, meal prep, INL homework">
+ <input type="text" id="p-t" placeholder="What? e.g. Call supervisor, meal prep, French homework">
  <input type="date" id="p-d" value="${key(viewDate)}"><input type="time" id="p-tm">
  <select id="p-c">${CATS.map(c => `<option>${c}</option>`).join('')}</select>
  <select id="p-r"><option value="none">Once</option><option value="daily">Daily</option><option value="weekly">Weekly</option></select>
@@ -898,8 +818,8 @@ function renderProgress(){
      h += `<div title="${key(d)}" style="background:${bg};opacity:${op}"></div>`; }
  }
  h += `</div></div>`;
- const keys = Object.keys(AIGP), done = keys.filter(k => (peekDay(k).checks.study||0) > 0).length;
- h += `<div class="card"><h2>AIGP plan</h2><div class="spread small"><span>${done} of ${keys.length} study days done</span><span>${Math.round(100*done/keys.length)}%</span></div><div class="bar"><i style="width:${100*done/keys.length}%"></i></div></div>`;
+ const keys = Object.keys(STUDY_TASKS), done = keys.filter(k => (peekDay(k).checks.study||0) > 0).length;
+ if (keys.length) h += `<div class="card"><h2>${esc(U.studyPlanName || 'Study')} plan</h2><div class="spread small"><span>${done} of ${keys.length} study days done</span><span>${Math.round(100*done/keys.length)}%</span></div><div class="bar"><i style="width:${100*done/keys.length}%"></i></div></div>`;
  h += `<div class="card"><h2>Strength trend (estimated 1-rep max)</h2><table>${[['bench','Bench press'],['squat','Back squat'],['deadlift','Deadlift'],['ohp','Overhead press'],['pullup','Pull-up']].map(([id,n]) => { const s = liftSeries(id); return `<tr><td>${n}</td><td>${s.length ? Math.round(s[s.length-1].v) + ' kg' : '<span class="muted">no data</span>'}</td><td>${spark(s)}</td></tr>`; }).join('')}</table></div>`;
  h += focusCard();
  if (S.settings.weight) h += `<div class="card"><h2>Nutrition target</h2><p>Protein about <b>${Math.round(1.6*S.settings.weight)} g a day</b> (1.6 g per kg at ${esc(S.settings.weight)} kg), 2-3 L water, 8,000+ steps.</p></div>`;
@@ -910,23 +830,25 @@ function renderProgress(){
 function renderPlan(){
  const cur = phaseFor(TODAY);
  let h = `<div class="card"><h2>Phases</h2><table><tr><th>Dates</th><th>Phase</th><th>Exam study</th><th>Uni</th><th>French</th></tr>${PHASES.map(p => `<tr style="${p === cur ? 'font-weight:650' : ''}"><td>${fmt(parse(p.from))} - ${fmt(parse(p.to))} ${parse(p.from).getFullYear()}</td><td>${esc(p.name)}${p === cur ? ' &larr; now' : ''}</td><td>${p.study || 'none'}</td><td>${p.uni ? {restart:'Thesis restart',thesis:'Thesis, daily',defence:'Defence prep'}[p.uni] : 'done'}</td><td>${p.french} min</td></tr>`).join('')}</table></div>`;
- h += `<div class="card"><h2>Your week</h2><div class="scroll"><table class="xl"><tr><th class="lbl">Day</th><th>Work</th><th>INL</th><th>Gym</th><th>Study</th><th>Thesis</th><th>French</th><th>Wake</th></tr>${DOW.map((n,i) => { const d = addDays(monday(TODAY), i), t = schedule(d), w = t.fixed.find(f => f.kind === 'work'), c = classFor(d); return `<tr><td class="lbl">${n}</td><td style="padding:0 8px">${w ? (isOffice(d) ? 'Office ' : 'Home ') + rng(w) : '-'}</td><td style="padding:0 8px">${c ? (c.online ? 'Teams ' : 'Belval ') + rng(c) : '-'}</td><td style="padding:0 8px">${t.gym ? rng(t.gym) : '-'}</td><td style="padding:0 8px">${t.study ? rng(t.study) : '-'}</td><td style="padding:0 8px">${t.uni ? rng(t.uni) : '-'}</td><td style="padding:0 8px">${c ? 'class' : t.french ? rng(t.french) : '-'}</td><td style="padding:0 8px">${t.wake ? hm(t.wake) : '-'}</td></tr>`; }).join('')}</table></div>
+ h += `<div class="card"><h2>Your week</h2><div class="scroll"><table class="xl"><tr><th class="lbl">Day</th><th>Work</th><th>Class</th><th>Gym</th><th>Study</th><th>Thesis</th><th>French</th><th>Wake</th></tr>${DOW.map((n,i) => { const d = addDays(monday(TODAY), i), t = schedule(d), w = t.fixed.find(f => f.kind === 'work'), c = classFor(d); return `<tr><td class="lbl">${n}</td><td style="padding:0 8px">${w ? (isOffice(d) ? 'Office ' : 'Home ') + rng(w) : '-'}</td><td style="padding:0 8px">${c ? (c.online ? 'Online ' : 'In person ') + rng(c) : '-'}</td><td style="padding:0 8px">${t.gym ? rng(t.gym) : '-'}</td><td style="padding:0 8px">${t.study ? rng(t.study) : '-'}</td><td style="padding:0 8px">${t.uni ? rng(t.uni) : '-'}</td><td style="padding:0 8px">${c ? 'class' : t.french ? rng(t.french) : '-'}</td><td style="padding:0 8px">${t.wake ? hm(t.wake) : '-'}</td></tr>`; }).join('')}</table></div>
  <p class="muted small">Built from the settings below. Change your hours, office days or class times and every day re-plans itself.</p></div>`;
  const tm = k => `<input type="time" data-set="${k}" value="${esc(SET(k))}">`, nm = (k, w) => `<input class="n" type="number" min="0" max="180" data-set="${k}" value="${esc(SET(k))}" style="width:${w||70}px">`;
  const days = (k, upto) => DOW.slice(0, upto).map((n,i) => `<label class="small" style="margin:0"><input type="checkbox" data-setday="${k}" data-i="${i}" ${SET(k).includes(i) ? 'checked' : ''}> ${n}</label>`).join('');
  h += `<div class="card"><h2>Work and commute</h2>
  <div class="row" style="margin-bottom:12px"><span class="small">Office hours</span>${tm('workStart')}<span>to</span>${tm('workEnd')}</div>
- <div class="row" style="margin-bottom:12px"><span class="small">Office days (Kirchberg)</span>${days('officeDays', 5)}</div>
+ <div class="row" style="margin-bottom:12px"><span class="small">Office days</span>${days('officeDays', 5)}</div>
  <div class="row" style="margin-bottom:12px"><span class="small">Commute each way</span>${nm('commute')}<span class="small">min</span><label class="small" style="margin:0"><input type="checkbox" data-setbool="trainUni" ${SET('trainUni') ? 'checked' : ''}> Use the train home for thesis work</label></div>
  <div class="row"><span class="small">Gym closes</span>${tm('gymClose')}<span class="small">Bedtime</span>${tm('bed')}</div></div>`;
- const left = Object.keys(INL_A1).filter(k => k >= key(TODAY)).length;
- h += `<div class="card"><h2>INL French classes</h2>
- <p class="small" style="margin-top:0"><b>French A1 standard combined (FR0143-8351)</b>, from your INL timetable: Mon and Wed 17:15-18:55 at Belval (room C2.03.02), Thu 17:15-18:55 e-learning. No classes 18 Dec - 3 Jan. Last class Thu 28 Jan 2027. <span class="muted">${left} classes left.</span></p>
- <div class="row" style="margin-bottom:12px"><span class="small">Travel from home to Belval</span>${nm('classTravel')}<span class="small">min</span></div>
- <h3>Next course (A2): rough plan until you have its timetable</h3>
- <div class="row" style="margin-bottom:12px"><span class="small">Starts</span><input type="date" data-set="nextCourseFrom" value="${esc(SET('nextCourseFrom'))}"><span class="small">Time</span>${tm('classStart')}<span>to</span>${tm('classEnd')}</div>
+ const cd = Object.keys(CLASS_DATES).sort(), left = cd.filter(k => k >= key(TODAY)).length;
+ h += `<div class="card"><h2>Classes</h2>
+ ${cd.length ? `<p class="small" style="margin-top:0"><b>${esc(CLASS_NAME)}</b>, ${esc(CLASS.start || '')}-${esc(CLASS.end || '')}${CLASS_PLACE ? `, ${esc(CLASS_PLACE)}` : ''}. ${left} classes left, last on ${fmt(parse(cd[cd.length-1]))}.</p>` : '<p class="small muted" style="margin-top:0">No class timetable in your setup.</p>'}
+ <div class="row" style="margin-bottom:12px"><span class="small">Travel to class</span>${nm('classTravel')}<span class="small">min</span></div>
+ <h3>Weekly classes (when there's no timetable)</h3>
+ <div class="row" style="margin-bottom:12px"><span class="small">From</span><input type="date" data-set="nextCourseFrom" value="${esc(SET('nextCourseFrom'))}"><span class="small">Time</span>${tm('classStart')}<span>to</span>${tm('classEnd')}</div>
  <div class="row" style="margin-bottom:12px"><span class="small">Class days</span>${days('classDays', 7)}</div>
- <div class="row"><span class="small">E-learning days</span>${days('classOnline', 7)}</div></div>`;
+ <div class="row"><span class="small">Online days</span>${days('classOnline', 7)}</div></div>`;
+ h += `<div class="card"><h2>Private setup</h2><p class="small" style="margin-top:0">${SETUP ? `Unlocked on this device: <b>${esc(SETUP.name || 'your plan')}</b>. Your plan details are stored here and in your own Google Drive, never on GitHub.` : 'Locked. This device shows a blank planner.'}</p>
+ <div class="row">${SETUP ? '<button class="btn" data-act="lock">Lock this device</button>' : '<button class="btn primary" data-act="show-lock">Sign in</button>'}</div></div>`;
  h += `<div class="card"><h2>Other</h2>
  <div class="row" style="margin-bottom:10px"><label style="margin:0">Body weight <input class="n" type="number" data-weight value="${esc(S.settings.weight)}"> kg</label><span class="muted small">for the protein target</span></div>
  <div class="row"><button class="btn" data-act="reset">Reset all data</button></div></div>`;
@@ -968,7 +890,7 @@ function renderGuide(){
 <li><b>Readiness check-in:</b> sleep and energy adjust the day's advice.</li>
 </ul></div>
 <div class="card"><h2>How to do each activity</h2>
-<details open><summary>Study hour (AIGP and later exams)</summary><ul>
+<details open><summary>Study hour</summary><ul>
 <li>Phone in another room, one browser tab, today's topic only.</li>
 <li>Block 1 (25 min): read or watch. Block 2 (25 min): close the source and write what you remember, then check.</li>
 <li>Last 10 min: write a 5-line summary and add any new facts to Anki.</li>
@@ -1064,7 +986,7 @@ document.addEventListener('change', e => {
    save(); return renderAll();
  }
  if (ds.tdone) { const x = touch(taskById(ds.tdone)); x.doneOn = x.doneOn || {}; if (t.checked) x.doneOn[ds.k] = true; else delete x.doneOn[ds.k]; save(); return renderAll(); }
- if (ds.act === 'import' && t.files[0]) { const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); if (d && d.days) { S = merge(S, d); if (!S.goals.length) S.goals = defaultGoals(); save(); renderAll(); alert('Backup loaded and merged.'); } else alert('That file is not a backup from this app.'); } catch(err){ alert('Could not read that file.'); } }; r.readAsText(t.files[0]); t.value = ''; }
+ if (ds.act === 'import' && t.files[0]) { const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); if (d && d.days) { S = merge(S, d); save(); alert('Backup loaded and merged.'); location.reload(); } else alert('That file is not a backup from this app.'); } catch(err){ alert('Could not read that file.'); } }; r.readAsText(t.files[0]); t.value = ''; }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'p-t') document.querySelector('[data-act=addtask]').click(); });
 window.addEventListener('online', () => schedulePush());
@@ -1170,7 +1092,7 @@ setInterval(() => {
 setInterval(() => { if (tab === 'today' && !F) renderNow(); }, 30000);
 
 /* quick add: understands "tomorrow", weekdays, 12/11, 18:00, 6pm, daily, weekly */
-const CAT_WORDS = [[/\b(gym|workout|run|swim|lift|training)\b/i,'Gym'],[/\b(aigp|study|exam|cism|azure|az-\d+|iso|aaism)\b/i,'Study'],[/\b(thesis|uni|paper|supervisor|experiment|chapter)\b/i,'Uni'],[/\b(french|inl|anki|delf|tandem)\b/i,'French'],[/\b(meeting|office|work|workshop|email)\b/i,'Work']];
+const CAT_WORDS = [[/\b(gym|workout|run|swim|lift|training)\b/i,'Gym'],[/\b(study|exam|course|cert|revision|cism|azure|az-\d+|iso)\b/i,'Study'],[/\b(thesis|uni|paper|supervisor|experiment|chapter)\b/i,'Uni'],[/\b(french|anki|delf|tandem)\b/i,'French'],[/\b(meeting|office|work|workshop|email)\b/i,'Work']];
 function parseQuick(text){
  let s = ` ${text.trim()} `, date = new Date(TODAY), time = '', repeat = 'none', m;
  const take = re => { const r = s.match(re); if (r) s = s.replace(r[0], ' '); return r; };
@@ -1199,7 +1121,7 @@ function addQuick(inp){
  save(); inp.value = ''; document.getElementById('sheet') && document.getElementById('sheet').classList.add('hide');
  renderAll(); toast(`Added: ${q.t}, ${fmt(parse(q.date))}${q.time ? ' ' + q.time : ''}`);
 }
-function quickCard(){ return `<div class="card"><h2>Quick add</h2><input type="text" id="qa" class="qa" placeholder='Type naturally: "gym tomorrow 18:00", "call supervisor fri 10am weekly", "INL homework 12/11"' autocomplete="off"><div class="qa-prev" id="qa-prev"></div><div class="row" style="justify-content:space-between"><span class="muted small">Press Enter to add. Press N anywhere to open quick add.</span><button class="btn primary" data-qa="add-inline">Add</button></div></div>`; }
+function quickCard(){ return `<div class="card"><h2>Quick add</h2><input type="text" id="qa" class="qa" placeholder='Type naturally: "gym tomorrow 18:00", "call supervisor fri 10am weekly", "French homework 12/11"' autocomplete="off"><div class="qa-prev" id="qa-prev"></div><div class="row" style="justify-content:space-between"><span class="muted small">Press Enter to add. Press N anywhere to open quick add.</span><button class="btn primary" data-qa="add-inline">Add</button></div></div>`; }
 
 /* focused time vs. what the plan schedules this week */
 function focusCard(){
@@ -1230,6 +1152,36 @@ document.addEventListener('keydown', e => {
  if (!typing && !F && tab === 'today' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { viewDate = addDays(viewDate, e.key === 'ArrowRight' ? 1 : -1); renderAll(); }
 });
 ensureLiveUI();
+
+/* sign-in: your plan details live in vault.json, encrypted with AES-256-GCM.
+   Only your passphrase opens it, and the passphrase never leaves the device. */
+async function openVault(pass){
+ const r = await fetch('vault.json', {cache:'no-store'}); if (!r.ok) throw new Error('No private plan has been published yet.');
+ const v = await r.json(), b = x => Uint8Array.from(atob(x), c => c.charCodeAt(0));
+ const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+ const k = await crypto.subtle.deriveKey({name:'PBKDF2', salt:b(v.salt), iterations:v.iter, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['decrypt']);
+ let pt; try { pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:b(v.iv)}, k, b(v.data)); } catch(e) { throw new Error('That passphrase is not right.'); }
+ return JSON.parse(new TextDecoder().decode(pt));
+}
+function showLock(){
+ let el = document.getElementById('lock'); if (el) return el.classList.remove('hide');
+ el = document.createElement('div'); el.id = 'lock'; el.className = 'lock';
+ el.innerHTML = `<form class="lock-in" id="lock-form"><img src="icon-192.png" alt="" width="56" height="56"><h1>Private planner</h1><p>Sign in with your passphrase to open your plan on this device.</p><input type="password" id="lock-pass" autocomplete="current-password" placeholder="Passphrase" required><button class="btn primary" type="submit" id="lock-go">Sign in</button><p class="lock-err" id="lock-err" role="alert"></p><p class="lock-note">Your plan is encrypted. The passphrase never leaves this device.</p><a class="lock-home" href="../">gandhi-taha.github.io</a></form>`;
+ document.body.appendChild(el);
+ el.querySelector('#lock-form').addEventListener('submit', async e => {
+   e.preventDefault(); const btn = el.querySelector('#lock-go'), err = el.querySelector('#lock-err');
+   btn.disabled = true; btn.textContent = 'Opening...'; err.textContent = '';
+   try { const setup = await openVault(el.querySelector('#lock-pass').value); setup.u = now(); S.setup = setup; saveLocal(); location.reload(); }
+   catch(x) { err.textContent = x.message; btn.disabled = false; btn.textContent = 'Sign in'; el.querySelector('#lock-pass').select(); }
+ });
+ setTimeout(() => el.querySelector('#lock-pass').focus(), 50);
+}
+document.addEventListener('click', e => {
+ const t = e.target.closest('[data-act="lock"],[data-act="show-lock"]'); if (!t) return;
+ if (t.dataset.act === 'show-lock') return showLock();
+ if (confirm('Sign out and lock this device? Your plan and progress are removed from this device. If you sync with Google Drive, they stay there; otherwise save a backup first.')) { try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '-sync'); } catch(x) {} location.reload(); }
+});
+if (!SETUP) showLock();
 
 renderAll();
 </script>
