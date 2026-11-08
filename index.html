@@ -246,7 +246,7 @@ input.qa,#qs{width:100%;font-size:16px;padding:12px 14px}
 .lock-home{font-size:13px;color:var(--ink-3);margin-top:10px}
 .lock.hide{display:none}
 /* ===== phone-first layer (tuned for 412 x 915, Galaxy S26 Ultra in Chrome) ===== */
-:root{--k-work:#4f5bd5;--k-commute:#8a8c93;--k-class:#8b5cf6;--k-meal:#c08a3e;--k-sleep:#64748b;--k-gym:#1f8a4c;--k-study:#2d5be3;--k-uni:#b7791f;--k-french:#d14d72}
+:root{--k-work:#4f5bd5;--k-commute:#8a8c93;--k-class:#8b5cf6;--k-meal:#cdbf9f;--k-sleep:#64748b;--k-gym:#1f8a4c;--k-study:#2d5be3;--k-uni:#b7791f;--k-french:#d14d72}
 html{-webkit-text-size-adjust:100%}
 button,a,input,select,label,summary{touch-action:manipulation}
 .btn:active,.ibtn:active,.chip-btn:active,.sday:active,.play:active,.cell:active,.gbtn:active{transform:scale(.97)}
@@ -380,6 +380,66 @@ details.lifts>summary .muted{margin-left:auto;font-weight:500;font-size:13px}
 #lock-pass{flex:1;min-width:0;min-height:48px}
 .lock-in a.btn{text-decoration:none;justify-content:center;width:100%;min-height:48px}
 .lock-in .btn.primary{min-height:52px}
+/* outlook + sections + sub-blocks */
+.outlook .ol-title{font-size:20px;font-weight:700;letter-spacing:-.015em;margin:2px 0 10px}
+.outlook .ol-title span{color:var(--ink-3);font-weight:550}
+.ol-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:2px 0 14px}
+.ol-stats div{background:var(--bg);border-radius:12px;padding:8px 10px}
+.ol-stats b{display:block;font-size:16px;font-variant-numeric:tabular-nums}
+.ol-stats span{font-size:12px;color:var(--ink-3)}
+.ol-tip{display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--bg);border-radius:12px;padding:10px 12px;font-size:13.5px;color:var(--ink-2)}
+.ol-tip.warn{background:var(--half-soft);color:#7a4f0f}
+.ol-tip .btn{flex:none}
+.nowline{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--bad);border-radius:2px;font-style:normal}
+details.sec{padding:0;overflow:hidden}
+details.sec>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;min-height:56px;cursor:pointer}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"\203A";font-size:22px;color:var(--ink-3);transform:rotate(90deg);transition:transform .2s}
+details.sec[open]>summary::after{transform:rotate(-90deg)}
+details.sec.has-now{border-color:var(--accent)}
+.sec-l b{display:block;font-size:16px}
+.sec-l span{font-size:12.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sec-r{display:flex;align-items:center;gap:6px;margin-left:auto}
+.sec-r .dots{display:flex;gap:3px}
+.sec-r .dots b{width:8px;height:8px;border-radius:3px;display:block}
+.pill{font-size:12px;font-weight:650;padding:3px 8px;border-radius:999px;background:var(--line-2);color:var(--ink-2)}
+.pill.now{background:var(--accent);color:#fff}
+.pill.miss{background:var(--bad-soft);color:var(--bad)}
+.sec-body{padding:0 10px 10px}
+.sb{position:relative;display:flex;align-items:center;gap:6px;border-radius:12px;margin-top:6px;background:var(--surface);border:1px solid var(--line-2);overflow:hidden}
+.sb::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:4px;border-radius:0 4px 4px 0;background:var(--bar,var(--line))}
+.sb.k-work{--bar:var(--k-work)}.sb.k-commute{--bar:var(--k-commute)}.sb.k-meal{--bar:var(--k-meal)}.sb.k-sleep{--bar:var(--k-sleep)}.sb.k-class{--bar:var(--k-class)}
+.sb.k-gym{--bar:var(--k-gym)}.sb.k-study{--bar:var(--k-study)}.sb.k-uni{--bar:var(--k-uni)}.sb.k-french{--bar:var(--k-french)}
+.sb.fixed{background:var(--bg);border-color:transparent;padding:8px 10px 8px 14px;min-height:48px}
+.sb.fixed .sb-title{font-weight:550;color:var(--ink-2)}
+.sb-row{flex:1;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 4px 8px 14px;border:0;background:none;text-align:left;cursor:pointer;min-width:0}
+.sb-time{width:42px;flex:none;font-size:13px;font-weight:600;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sb-main{display:flex;flex-direction:column;min-width:0;flex:1}
+.sb-title{font-size:15px;font-weight:650;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-meta{font-size:12.5px;color:var(--ink-3)}
+.sb-chev{width:8px;height:8px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(45deg);margin:0 6px 4px 2px;flex:none}
+.sb-row[aria-expanded="true"] .sb-chev{transform:rotate(-135deg);margin-bottom:-2px}
+.sb .check{margin-right:6px}
+.sb.done .sb-title{color:var(--ink-3);text-decoration:line-through}
+.sb.now{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.sb.missed .sb-meta{color:var(--bad)}
+.sb-prog{position:absolute;left:0;bottom:0;height:3px;background:var(--accent)}
+.sb-more{margin:2px 2px 4px 8px;padding:4px 0 6px 10px;border-left:2px solid var(--bar,var(--line))}
+.sb-more .detail{margin:4px 0;color:var(--ink-2);font-size:14.5px}
+.sb-more .min{margin:0 0 8px;color:var(--ink-3);font-size:12.5px}
+.fr-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.fr-bar{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line-2)}
+.fr-bar b{color:var(--k-french)}
+.fr-bar span{flex:1;font-size:12.5px;color:var(--ink-3)}
+.fr-slot{height:min(70vh,640px)}
+.fr-frame{width:100%;height:100%;border:0;display:block}
+.fr-wrap.full{position:fixed;inset:0;z-index:70;border-radius:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.fr-wrap.full .fr-slot{flex:1;height:auto}
+body.noscroll{overflow:hidden}
+.hint{text-align:center;margin:4px 0 14px}
+@media (max-width:620px){.ol-tip{flex-direction:column;align-items:stretch}.sec-r .dots{display:none}}
+.fab{transition:transform .25s ease,opacity .25s}
+.fab.fab-away{transform:translateY(140%);opacity:0;pointer-events:none}
 </style>
 
 
@@ -594,7 +654,8 @@ function fitIn(busy, from, len, limit){
 }
 function permutations(a){ if (a.length <= 1) return [a]; return a.flatMap((x,i) => permutations([...a.slice(0,i), ...a.slice(i+1)]).map(r => [x, ...r])); }
 function schedule(d){
- const p = phaseFor(d), wd = dow(d), out = {fixed:[], notes:[]}, fm = frenchTask(d,p).m, sm = studyMinutes(d,p);
+ const LIGHT = !!peekDay(key(d)).light, GYM = LIGHT ? 30 : 60, UNI = LIGHT ? 30 : 60;
+ const p = phaseFor(d), wd = dow(d), out = {fixed:[], notes:[]}, fm = LIGHT ? Math.min(frenchTask(d,p).m, 15) : frenchTask(d,p).m, sm = LIGHT ? Math.min(studyMinutes(d,p), 30) : studyMinutes(d,p);
  const close = T(SET('gymClose')), bed = T(SET('bed')), wind = bed - 30, cls = classFor(d), trav = +SET('classTravel') || 0;
  const put = (id, s, len, where) => (out[id] = {s, e:s+len, where});
  const busy = [];
@@ -603,9 +664,11 @@ function schedule(d){
  if (!isWorkday(d)) {
    t = wd === 6 ? 600 : 540;
    if (cls) { fix(cls.s, cls.e, cls.label, 'class'); if (!cls.online) { fix(cls.s-trav, cls.s, toClass, 'commute'); fix(cls.e, cls.e+trav, fromClass, 'commute'); } put('french', cls.s, cls.e-cls.s, cls.online ? 'online' : atClass); }
+   fix(13*60, 13*60+45, 'Lunch', 'meal');
    want = ['gym', ...(sm ? ['study'] : []), ...(p.uni ? ['uni'] : []), ...(cls ? [] : ['french'])];
    let cur = t;
-   for (const id of want) { const len = id === 'gym' ? 60 : id === 'study' ? sm : id === 'uni' ? 60 : fm; const s = fitIn(busy, cur, len, wind); if (s === null) continue; put(id, s, len); busy.push(out[id]); cur = s + len + (id === 'study' ? 90 : 30); }
+   for (const id of want) { const len = id === 'gym' ? GYM : id === 'study' ? sm : id === 'uni' ? UNI : fm; const s = fitIn(busy, cur, len, wind); if (s === null) continue; put(id, s, len); busy.push(out[id]); cur = s + len + (id === 'study' ? 90 : 30); }
+   const first = Math.min(...[...out.fixed.map(f => f.s), ...['gym','study','uni','french'].filter(k2 => out[k2]).map(k2 => out[k2].s)]); out.wake = first - 45; fix(out.wake, out.wake + 35, 'Breakfast', 'meal');
  } else {
    let ws = T(SET('workStart')), we = T(SET('workEnd'));
    const cm = +SET('commute') || 0, office = isOffice(d) && cm > 0;
@@ -614,6 +677,7 @@ function schedule(d){
      if (shift > 0) { ws -= shift; we -= shift; out.notes.push(`Class ${atClass} at ${hm(cls.s)}: work ${hm(ws)}-${hm(we)} today so you can leave ${officeName()} by ${hm(we)}, or tick "Working from home today".`); }
    }
    fix(ws, we, office ? `Work at ${officeName()}` : 'Work from home', 'work');
+   fix(12*60, 12*60+30, 'Lunch break', 'meal');
    if (office) {
      fix(ws-cm, ws, `Commute to ${officeName()}`, 'commute');
      if (cls && !cls.online) {
@@ -632,15 +696,15 @@ function schedule(d){
      }
      if (!cls) put('french', ws-cm+5, Math.min(fm, cm-10), 'on the morning train');
    } else {
-     if (p.uni) put('uni', ws-60, 60, 'before work');
-     if (!cls) put('french', 12*60+30, Math.min(fm, 30), 'at lunch');
+     if (p.uni) put('uni', ws-UNI, UNI, 'before work');
+     if (!cls) put('french', 12*60+35, Math.min(fm, 25), 'after lunch');
      if (cls && !cls.online) { fix(cls.s-trav, cls.s, toClass, 'commute'); fix(cls.e, cls.e+trav, fromClass, 'commute'); }
      t = we + 5;
    }
    if (cls) { fix(cls.s, cls.e, cls.label, 'class'); put('french', cls.s, cls.e-cls.s, cls.online ? 'online' : atClass); }
    if (out.uni) busy.push(out.uni);
    want = ['gym', 'dinner', ...(sm ? ['study'] : []), ...(p.uni && !out.uni ? ['uni'] : [])];
-   const lens = {gym:60, dinner:35, study:sm, uni:60};
+   const lens = {gym:GYM, dinner:35, study:sm, uni:UNI};
    let best = null;
    for (const order of permutations(want)) {
      const b = busy.slice(), placed = {}; let cur = t;
@@ -649,12 +713,15 @@ function schedule(d){
      if (!best || score > best.score) best = {score, placed};
    }
    for (const [id, x] of Object.entries(best.placed)) { if (id === 'dinner') fix(x.s, x.e, 'Dinner', 'meal'); else out[id] = x; }
-   if (sm && !out.study) { put('study', 12*60+15, Math.min(sm, 45), 'at lunch'); out.notes.push('Busy evening, so your study block moves to lunch today (45 min).'); }
+   if (sm && !out.study) { put('study', 12*60+35, Math.min(sm, 40), 'after lunch'); out.notes.push('Busy evening, so your study block moves to after lunch today (40 min).'); }
    if (!out.gym) { put('gym', Math.max(t, close-40), 30); out.notes.push('No full hour for the gym before it closes. Do the 30-min minimum version tonight.'); }
    if (p.uni && !out.uni) { put('uni', ws-45, 45, 'before work'); out.notes.push('Thesis moves to the morning before work today.'); }
+   if (out.uni && out.uni.where === 'before work') { const busyAt = out.fixed.filter(f => f.s < ws && f.e > out.uni.s); if (busyAt.length) out.uni.s = Math.min(...busyAt.map(f => f.s)) - (out.uni.e - out.uni.s), out.uni.e = out.uni.s + UNI; }
    const first = Math.min(...[...out.fixed.map(f => f.s), ...['gym','study','uni','french'].filter(k => out[k]).map(k => out[k].s)]);
    out.wake = first - 30;
+   fix(out.wake, first, 'Get ready, breakfast', 'meal');
  }
+ if (LIGHT) out.notes.unshift('Light day: every block is at its minimum length.');
  out.fixed.push({s:wind, e:bed, label:'Screens off, wind down', kind:'sleep'});
  if (!out.french) put('french', 16*60, fm);
  return out;
@@ -804,32 +871,66 @@ function renderToday(){
  <div class="ci-row"><span class="ci-l">Sleep</span><div class="chips">${[5.5,6,6.5,7,7.5,8,8.5,9].map(v => `<button class="chip-btn ${parseFloat(day.sleep) === v ? 'on' : ''}" data-sleep="${v}">${v}h</button>`).join('')}</div></div>
  <div class="ci-row"><span class="ci-l">Energy</span><div class="seg big">${[1,2,3,4,5].map(n => `<button data-energy="${n}" class="${day.energy === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
  ${dow(d) < 5 ? `<div class="ci-row"><span class="ci-l">Work</span><div class="chips">${officeDay ? `<button class="chip-btn ${!day.home && !day.off ? 'on' : ''}" data-wmode="office">Office</button>` : ''}<button class="chip-btn ${(officeDay ? day.home : !day.off) && !day.off ? 'on' : ''}" data-wmode="home">Home</button><button class="chip-btn ${day.off ? 'on' : ''}" data-wmode="off">Day off</button></div></div>` : ''}</div>`;
- const KLABEL = {work:'Work', commute:'Commute', class:'Class', meal:'Dinner', sleep:'Wind down', gym:'Gym', study:'Study', uni:'Thesis', french:'French'};
+ const KLABEL = {work:'Work', commute:'Commute', class:'Class', meal:'Meals', sleep:'Wind down', gym:'Gym', study:'Study', uni:'Thesis', french:'French'};
  const hrows = hs.map(x => { const z = sc[x.id] || {s:x.s, e:x.s + 60}; return {...x, row:'habit', kind:x.id, e:z.e}; });
  const frows = sc.fixed.map(f => ({...f, row:'fixed', time:rng(f)}));
- const cls = classFor(d);
+ const cls = classFor(d), isToday = k === key(TODAY), m = nowMin();
  const tags = [];
  if (!isWorkday(d)) tags.push(dow(d) >= 5 ? '<span>Weekend</span>' : '<span class="off">Day off</span>');
- else tags.push(isOffice(d) ? `<span class="office">Office day · ${esc(officeName())}</span>` : '<span class="home">Home office day</span>');
+ else tags.push(isOffice(d) ? `<span class="office">Office · ${esc(officeName())}</span>` : '<span class="home">Home office</span>');
  if (cls) tags.push(`<span class="cls">${cls.online ? 'Class online' : 'Class ' + esc(atClass)} · ${hm(cls.s)}</span>`);
+ if (day.light) tags.push('<span class="off">Light day</span>');
+ // day outlook: where the hours go, free time, sleep before tomorrow
+ const o = outlook(d);
  const lo = Math.min(sc.wake || 1e9, ...hrows.map(r => r.s), ...frows.map(r => r.s)), hi = Math.max(...hrows.map(r => r.e), ...frows.map(r => r.e));
  const pos = r => `left:${((r.s - lo)/(hi - lo)*100).toFixed(2)}%;width:${Math.max(1.2, (r.e - r.s)/(hi - lo)*100).toFixed(2)}%`;
  const laneF = frows.map(r => `<i class="k-${r.kind}" style="${pos(r)}" title="${esc(r.label)} ${rng(r)}"></i>`).join('');
  const laneH = hrows.filter(r => !(cls && r.id === 'french')).map(r => `<i class="k-${r.kind}" style="${pos(r)}" title="${esc(r.title)} ${esc(r.time)}"></i>`).join('');
- const tk = []; for (let m = Math.ceil(lo/180)*180; m <= hi; m += 180) tk.push(hm(m));
+ const nowLine = isToday && m > lo && m < hi ? `<em class="nowline" style="left:${((m - lo)/(hi - lo)*100).toFixed(2)}%"></em>` : '';
+ const tk = []; for (let t = Math.ceil(lo/180)*180; t <= hi; t += 180) tk.push(hm(t));
  const kinds = [...new Set([...frows.map(r => r.kind), ...hrows.map(r => r.kind)])];
- h += `<div class="card"><h2>Plan for the day</h2><div class="daytype">${tags.join('')}</div>
- <div class="daybar"><div class="lane">${laneF}</div><div class="lane">${laneH}</div><div class="ticks">${tk.map(t => `<span>${t}</span>`).join('')}</div></div>
- <div class="legend">${kinds.map(k => `<span><b class="k-${k}"></b>${KLABEL[k] || k}</span>`).join('')}</div>${sc.wake ? `<div class="muted small" style="margin:-4px 0 4px">Wake up around ${hm(sc.wake)}</div>` : ''}`;
- const rows = [...hrows, ...frows.filter(f => f.kind !== 'class')].sort((a,b) => a.s - b.s);
- rows.forEach(x => {
-   if (x.row === 'fixed') { h += `<div class="block fixed k-${x.kind}"><div class="time">${esc(x.time)}</div><div><div class="title">${esc(x.label)}</div><div class="dur">${fmtDur(x.e - x.s)}</div></div></div>`; return; }
-   const v = day.checks[x.id];
-   h += `<div class="block k-${x.kind}"><div class="time">${esc(x.time)}</div><div><div class="title">${esc(x.title)}</div><div class="detail">${esc(x.detail)}</div><div class="min">${esc(x.min)}</div></div>
-   <div class="acts">${v === 1 ? '' : `<button class="play" data-focus="${x.id}" data-k="${k}" title="Start focus timer" aria-label="Start focus timer"><svg viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg></button>`}<button class="check ${stateClass(v)}" data-check="${x.id}" aria-label="${stateLabel(v)}"><span class="lab">${v === undefined ? '' : stateLabel(v)}</span><span class="dot"></span></button></div></div>`;
-   if (x.workout) h += workoutTable(x.workout, k, isDeload(d));
+ const stat = (l, v) => `<div><b>${fmtDur(v)}</b><span>${l}</span></div>`;
+ const tip = o.light ? `<div class="ol-tip"><span>Light day: every block is shortened to its minimum version.</span><button class="btn" data-light="0">Full day</button></div>`
+   : (o.level === 'Packed' || o.level === 'Busy' || o.sleep < 420) ? `<div class="ol-tip warn"><span>${o.sleep < 420 ? `Only ${fmtDur(o.sleep)} until tomorrow's alarm.` : `Only ${fmtDur(o.free)} of free time today.`} Shorten the blocks so the day stays doable.</span><button class="btn" data-light="1">Lighten this day</button></div>` : '';
+ h += `<div class="card outlook"><div class="ol-head"><div><div class="eyebrow">Day outlook</div><div class="ol-title">${o.level} day <span>· ${fmtDur(o.free)} free</span></div></div></div><div class="daytype">${tags.join('')}</div>
+ <div class="ol-stats">${[o.work && stat('Work', o.work), o.commute && stat('Commute', o.commute), o.cls && stat('Class', o.cls), stat('Your blocks', o.mine), stat('Free', o.free), stat('Sleep', o.sleep)].filter(Boolean).join('')}</div>
+ <div class="daybar"><div class="lane">${laneF}${nowLine}</div><div class="lane">${laneH}${nowLine}</div><div class="ticks">${tk.map(t => `<span>${t}</span>`).join('')}</div></div>
+ <div class="legend">${kinds.map(x => `<span><b class="k-${x}"></b>${KLABEL[x] || x}</span>`).join('')}</div>${tip}</div>`;
+ // the day in sections, each with its own sub-blocks
+ const workF = frows.find(f => f.kind === 'work'), wind = T(SET('bed')) - 30;
+ const defs = workF ? [['Morning', -1, workF.s], ['Work day', workF.s, workF.e], ['After work', workF.e, wind], ['Night', wind, 1e9]] : [['Morning', -1, 720], ['Afternoon', 720, 1020], ['Evening', 1020, wind], ['Night', wind, 1e9]];
+ const all = [...hrows, ...frows.filter(f => f.kind !== 'class')].sort((a,b) => a.s - b.s || (a.row === 'fixed' ? -1 : 1));
+ let openedOne = false;
+ defs.forEach(([name, from, to]) => {
+   const rows = all.filter(r => r.s >= from && r.s < to); if (!rows.length) return;
+   const hab = rows.filter(r => r.row === 'habit'), dn = hab.filter(r => (day.checks[r.id] || 0) > 0).length;
+   const s0 = Math.min(...rows.map(r => r.s)), e0 = Math.max(...rows.map(r => r.e));
+   const hasNow = isToday && s0 <= m && m < e0, past = isToday ? e0 <= m : d < TODAY;
+   const isMissed = r => r.row === 'habit' && day.checks[r.id] === undefined && (d < TODAY || (isToday && r.e <= m));
+   const missed = rows.filter(isMissed).length;
+   const sk = `${k}|${name}`;
+   let open = secOpen[sk];
+   if (open === undefined) open = isToday ? (hasNow || (!past && !openedOne && hab.length > dn)) : d > TODAY ? (!openedOne && hab.length > 0) : missed > 0;
+   if (open && !past) openedOne = true;
+   const dots = [...new Set(rows.map(r => r.kind))].map(x => `<b class="k-${x}"></b>`).join('');
+   h += `<details class="card sec ${hasNow ? 'has-now' : ''}" data-sec="${sk}" ${open ? 'open' : ''}><summary><div class="sec-l"><b>${name}</b><span>${hm(s0)}–${hm(e0)}</span></div><div class="sec-r"><span class="dots">${dots}</span>${hasNow ? '<span class="pill now">Now</span>' : ''}${missed ? `<span class="pill miss">${missed} missed</span>` : ''}${hab.length ? `<span class="pill">${dn}/${hab.length}</span>` : ''}</div></summary><div class="sec-body">`;
+   rows.forEach(r => {
+     if (r.row === 'fixed') { h += `<div class="sb fixed k-${r.kind}"><span class="sb-time">${hm(r.s)}</span><span class="sb-main"><span class="sb-title">${esc(r.label)}</span><span class="sb-meta">${rng(r)} · ${fmtDur(r.e - r.s)}</span></span></div>`; return; }
+     const v = day.checks[r.id], done = (v || 0) > 0, now = isToday && r.s <= m && m < r.e && !done, miss = isMissed(r);
+     const tracked = (day.mins || {})[r.id] || 0, ok = `${k}|${r.id}`, ex = sbOpen[ok] !== undefined ? sbOpen[ok] : now;
+     const meta = [fmtDur(r.e - r.s), tracked ? `${fmtDur(tracked)} tracked` : '', now ? `${fmtDur(r.e - m)} left` : '', miss ? 'missed' : ''].filter(Boolean).join(' · ');
+     h += `<div class="sb k-${r.kind} ${done ? 'done' : now ? 'now' : miss ? 'missed' : ''}"><button class="sb-row" data-sbx="${r.id}" aria-expanded="${ex}"><span class="sb-time">${hm(r.s)}</span><span class="sb-main"><span class="sb-title">${esc(r.title)}</span><span class="sb-meta">${meta}</span></span><span class="sb-chev"></span></button><button class="check ${stateClass(v)}" data-check="${r.id}" aria-label="${stateLabel(v)}"><span class="lab">${v === undefined ? '' : stateLabel(v)}</span><span class="dot"></span></button>${now ? `<i class="sb-prog" style="width:${Math.round(100*(m - r.s)/(r.e - r.s))}%"></i>` : ''}</div>`;
+     if (ex) {
+       h += `<div class="sb-more" style="--bar:var(--k-${r.kind})"><p class="detail">${esc(r.detail)}</p><p class="min">${esc(r.min)}</p>`;
+       if (r.id === 'french') h += `<div class="fr-wrap" id="fr-wrap"><div class="fr-bar"><b>Français</b><span id="fr-live">${tracked ? fmtDur(tracked) + ' so far' : 'Time here counts as French'}</span><button class="btn" data-frfull>Full screen</button></div><div class="fr-slot" id="fr-slot"></div></div>`;
+       else if (!done) h += `<div class="row"><button class="btn primary" data-focus="${r.id}" data-k="${k}">Start focus timer</button></div>`;
+       if (r.workout) h += workoutTable(r.workout, k, isDeload(d));
+       h += `</div>`;
+     }
+   });
+   h += `</div></details>`;
  });
- h += `<p class="muted small" style="margin-bottom:0">Tap the circle once for done, twice for the minimum version (counts half), three times for skipped.</p></div>`;
+ h += `<p class="muted small hint">Tap a block for details. Tap the circle: done, then minimum (half), then skipped. Swipe sideways to change day.</p>`;
  const tl = tasksOn(k);
  h += `<div class="card"><div class="spread"><h2 style="margin:0">Your planner tasks</h2><button class="btn" data-goto="planner">+ Add</button></div>${tl.length ? tl.map(t => taskRow(t,k)).join('') : '<p class="muted small">Nothing extra planned for this day.</p>'}</div>`;
  const wk = weekData(monday(d));
@@ -837,6 +938,7 @@ function renderToday(){
  h += `<div class="card"><h2>Note</h2><textarea data-f="note" placeholder="One line: what worked, what got in the way">${esc(day.note)}</textarea></div>`;
  document.getElementById('today').innerHTML = h;
  renderNow();
+ mountFrench();
 }
 function lastSets(id, k){ const hh = liftHistory(id, k); return hh.length ? (S.days[hh[hh.length-1]].lifts[id] || []).filter(x => x && +x.w > 0) : []; }
 function workoutTable(wid, k, deload){
@@ -1081,6 +1183,7 @@ function renderGuide(){
 
 /* ---------- events ---------- */
 function renderAll(){
+ if (typeof mountFrench === 'function' && tab !== 'today') setTimeout(mountFrench, 0);
  renderHeader();
  const sb = document.getElementById('syncbtn'); if (sb) sb.style.display = S.settings.driveClientId ? 'inline-block' : 'none';
  ({today:renderToday, planner:renderPlanner, tracker:renderTracker, week:renderWeek, progress:renderProgress, plan:renderPlan, guide:renderGuide})[tab]();
@@ -1172,7 +1275,7 @@ function renderNow(){
  const cur = tl.filter(x => x.s <= m && m < x.e), main = cur.find(x => x.id && !x.done) || cur.find(x => !x.id) || cur[0];
  const next = tl.find(x => x.s > m && !(x.id && x.done)), open = habitsFor(d).filter(h => !((checks[h.id]||0) > 0));
  let title, sub, pct = null, act = '';
- if (main) { pct = (m - main.s)/(main.e - main.s); title = main.label; sub = `${fmtDur(main.e - m)} left, until ${hm(main.e)}`; if (main.id && !main.done) act = `<button class="btn primary" data-focus="${main.id}" data-k="${k}">Start focus</button>`; }
+ if (main) { pct = (m - main.s)/(main.e - main.s); title = main.label; sub = `${fmtDur(main.e - m)} left, until ${hm(main.e)}`; if (main.id && !main.done) act = main.id === 'french' ? `<button class="btn primary" data-sbx="french" aria-expanded="false">Open French</button>` : `<button class="btn primary" data-focus="${main.id}" data-k="${k}">Start focus</button>`; }
  else if (next) { title = `Next: ${next.label}`; sub = `in ${fmtDur(next.s - m)}, at ${hm(next.s)}`; if (next.id) act = `<button class="btn" data-focus="${next.id}" data-k="${k}">Start now</button>`; }
  else if (m >= T(SET('bed')) - 30) { title = 'Wind down'; sub = open.length ? `Tick what you did today (${open.length} still open), then sleep.` : 'Everything is done. Good day.'; }
  else { title = open.length ? 'Free time' : 'All done for today'; sub = open.length ? `Still open: ${open.map(h => HNAME[h.id]).join(', ')}` : 'Enjoy the evening.'; }
@@ -1397,7 +1500,8 @@ if (!SETUP || !ghTok()) showLock(); else ghRefresh();
 
 /* ===== phone touches: haptics, swipe between days, collapsing header, app shortcuts ===== */
 const buzz = (ms = 8) => { try { if (navigator.vibrate) navigator.vibrate(ms); } catch(e) {} };
-const transition = fn => (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) ? document.startViewTransition(fn) : fn();
+let vtBusy = false;
+const transition = fn => { if (!document.startViewTransition || vtBusy || matchMedia('(prefers-reduced-motion: reduce)').matches) return fn(); vtBusy = true; const vt = document.startViewTransition(fn); [vt.ready, vt.finished, vt.updateCallbackDone].forEach(pr => pr.catch(() => {})); vt.finished.finally(() => { vtBusy = false; }); };
 const liftOpen = {};
 document.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('lifts')) liftOpen[key(viewDate)] = e.target.open; }, true);
 document.addEventListener('click', e => {
@@ -1422,7 +1526,7 @@ document.addEventListener('click', e => {
  document.addEventListener('touchend', e => { const s = e.target.closest('.strip'); if (!s || s._x == null) return; const dx = e.changedTouches[0].clientX - s._x; s._x = null; if (Math.abs(dx) > 60) { buzz(6); transition(() => { viewDate = addDays(viewDate, dx < 0 ? 7 : -7); renderAll(); }); } }, {passive:true});
 })();
 // big title collapses into a compact bar while scrolling
-(() => { const top = document.querySelector('.top'); let on = false; addEventListener('scroll', () => { const c = scrollY > 40; if (c !== on) { on = c; top.classList.toggle('compact', c); } }, {passive:true}); })();
+(() => { const top = document.querySelector('.top'); let on = false, lastY = 0; addEventListener('scroll', () => { const y = scrollY, c = y > 40; if (c !== on) { on = c; top.classList.toggle('compact', c); } const fab = document.getElementById('fab'); if (fab && Math.abs(y - lastY) > 6) { fab.classList.toggle('fab-away', y > lastY && y > 120); lastY = y; } }, {passive:true}); })();
 // home-screen shortcuts: ?action=add, ?action=focus, ?tab=...
 (() => {
  const q = new URLSearchParams(location.search); if (!SETUP) return;
@@ -1432,6 +1536,54 @@ document.addEventListener('click', e => {
  if (a === 'focus') { const m = nowMin(), nx = timeline(new Date(TODAY)).find(x => x.id && !x.done && x.e > m); if (nx) setTimeout(() => openFocus(nx.id, key(TODAY)), 300); }
  if (t || a) history.replaceState(null, '', location.pathname);
 })();
+
+/* ---------- day outlook, sections, embedded French app ---------- */
+const secOpen = {}, sbOpen = {};
+const FRENCH_URL = /github\.io$/.test(location.hostname) ? '../french/' : 'https://gandhi-taha.github.io/french/';
+function outlook(d){
+ const sc = schedule(d), hs = habitsFor(d), cls = classFor(d), bed = T(SET('bed')), wind = bed - 30;
+ const ivs = [...sc.fixed.filter(f => f.kind !== 'sleep'), ...hs.map(h => sc[h.id]).filter(Boolean)].map(x => [x.s, x.e]).sort((a,b) => a[0] - b[0]);
+ let busyM = 0, cs = -1, ce = -1;
+ ivs.forEach(([s,e]) => { if (s > ce) { if (ce > cs) busyM += ce - cs; cs = s; ce = e; } else ce = Math.max(ce, e); }); if (ce > cs) busyM += ce - cs;
+ const start = sc.wake != null ? sc.wake : (ivs.length ? ivs[0][0] - 45 : 480), span = Math.max(1, wind - start), free = Math.max(0, span - busyM);
+ const sumK = kk => sc.fixed.filter(f => f.kind === kk).reduce((a,f) => a + f.e - f.s, 0);
+ const mine = hs.reduce((a,h) => { const x = sc[h.id]; return a + (x && !(cls && h.id === 'french') ? x.e - x.s : 0); }, 0);
+ const nx = schedule(addDays(d,1)), nextWake = nx.wake != null ? nx.wake : 480, sleep = 1440 - bed + nextWake;
+ const ratio = busyM / span, level = free < 45 ? 'Packed' : ratio > 0.85 ? 'Busy' : ratio > 0.7 ? 'Full' : 'Relaxed';
+ return {work:sumK('work'), commute:sumK('commute'), cls: cls ? cls.e - cls.s : 0, mine, free, sleep, level, light: !!peekDay(key(d)).light};
+}
+document.addEventListener('toggle', e => { const t = e.target; if (t.classList && t.classList.contains('sec')) secOpen[t.dataset.sec] = t.open; }, true);
+document.addEventListener('click', e => {
+ const t = e.target.closest('[data-sbx],[data-light],[data-frfull]'); if (!t) return;
+ if (t.dataset.sbx) { const ok = `${key(viewDate)}|${t.dataset.sbx}`, cur = t.getAttribute('aria-expanded') === 'true'; sbOpen[ok] = !cur; if (typeof buzz === 'function') buzz(5); return renderAll(); }
+ if (t.dataset.light) { const day = touch(getDay(key(viewDate))); day.light = t.dataset.light === '1'; save(); if (typeof buzz === 'function') buzz(10); return renderAll(); }
+ if (t.hasAttribute('data-frfull')) { const w = document.getElementById('fr-wrap'); const on = !w.classList.contains('full'); w.classList.toggle('full', on); t.textContent = on ? 'Close' : 'Full screen'; document.body.classList.toggle('noscroll', on); }
+});
+// the French app lives in one iframe that is moved, not reloaded, when the page re-renders
+let FR_FRAME = null, FR_TRACK = null;
+function frenchFrame(){
+ if (!FR_FRAME) { FR_FRAME = document.createElement('iframe'); FR_FRAME.src = FRENCH_URL; FR_FRAME.title = 'French course'; FR_FRAME.className = 'fr-frame'; FR_FRAME.setAttribute('allow', 'autoplay; clipboard-write; fullscreen'); }
+ return FR_FRAME;
+}
+const moveInto = (parent, node) => { if (node.isConnected && parent.moveBefore) { try { return parent.moveBefore(node, null); } catch(e) {} } return parent.appendChild(node); };
+function frCommit(rerender){
+ if (!FR_TRACK) return;
+ const mins = Math.floor((Date.now() - FR_TRACK.since) / 60000); if (mins < 1) return;
+ FR_TRACK.since += mins * 60000;
+ const day = touch(getDay(FR_TRACK.k)); day.mins = day.mins || {}; day.mins.french = (day.mins.french || 0) + mins;
+ const sc = schedule(parse(FR_TRACK.k)), planned = sc.french ? sc.french.e - sc.french.s : 15, total = day.mins.french;
+ if (total >= planned) day.checks.french = 1; else if (total >= 5 && !(day.checks.french > 0)) day.checks.french = 0.5;
+ save(); if (rerender) renderAll();
+}
+function mountFrench(){
+ const slot = document.getElementById('fr-slot');
+ let park = document.getElementById('fr-park'); if (!park) { park = document.createElement('div'); park.id = 'fr-park'; park.hidden = true; document.body.appendChild(park); }
+ if (slot) { if (FR_FRAME && FR_FRAME.parentNode === slot) return; moveInto(slot, frenchFrame()); if (!FR_TRACK) FR_TRACK = {k:key(viewDate), since:Date.now()}; }
+ else { if (FR_FRAME && FR_FRAME.parentNode !== park) moveInto(park, FR_FRAME); if (FR_TRACK) { frCommit(false); FR_TRACK = null; } document.body.classList.remove('noscroll'); }
+}
+setInterval(() => { if (FR_TRACK && document.visibilityState === 'visible') { const el = document.getElementById('fr-live'), day = peekDay(FR_TRACK.k), mins = ((day.mins || {}).french || 0) + Math.floor((Date.now() - FR_TRACK.since) / 60000); if (el) el.textContent = `${fmtDur(mins)} so far`; } }, 15000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') frCommit(false); else if (FR_TRACK) FR_TRACK.since = Date.now(); });
+addEventListener('pagehide', () => frCommit(false));
 
 renderAll();
 </script>
