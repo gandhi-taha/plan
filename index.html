@@ -245,6 +245,10 @@ input.qa,#qs{width:100%;font-size:16px;padding:12px 14px}
 .lock-note{font-size:12.5px;color:var(--ink-3)!important}
 .lock-home{font-size:13px;color:var(--ink-3);margin-top:10px}
 .lock.hide{display:none}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:12px 16px;border:1px solid var(--line);background:#fff;border-radius:12px;font-size:15px;font-weight:600;color:#1f1f1f;cursor:pointer}
+.gbtn:hover{border-color:#c9c8c1}
+.gbtn svg{width:20px;height:20px}
+.gbtn:disabled{opacity:.6;cursor:default}
 </style>
 
 
@@ -287,7 +291,7 @@ const SETUP = (() => { try { const r = JSON.parse(localStorage.getItem('improvem
 const U = SETUP || {};
 function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) { if (!s.goals || !s.goals.length) s.goals = defaultGoals(); if (!s.tasks) s.tasks = []; s.v = 2; return s; } } catch(e){} return fresh(); }
 function saveLocal(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
-function save(){ saveLocal(); schedulePush(); if (typeof ghSoon === 'function') ghSoon(); }
+function save(){ saveLocal(); schedulePush(); }
 const now = () => Date.now();
 const uid = () => now().toString(36) + Math.random().toString(36).slice(2,6);
 
@@ -302,6 +306,8 @@ function merge(a, b){
 }
 
 /* ---------- Google Drive sync (your own Drive, hidden app folder, no other service) ---------- */
+const GOOGLE_CLIENT_ID = '';
+const clientId = () => GOOGLE_CLIENT_ID || S.settings.driveClientId || '';
 let token = null, tokenExp = 0, pushTimer = null, syncing = false;
 const DRIVE_NAME = 'improvement-plan.json';
 const hasToken = () => token && now() < tokenExp - 60000;
@@ -310,10 +316,10 @@ function loadGis(){ return new Promise((res, rej) => { if (window.google && goog
 async function getToken(interactive){
  if (hasToken()) return token;
  if (!interactive) throw new Error('Tap Sync to connect Google Drive');
- if (!S.settings.driveClientId) throw new Error('Add your Google OAuth client ID in Plan & settings first');
+ if (!clientId()) throw new Error('Sign-in is not set up yet.');
  await loadGis();
  return new Promise((res, rej) => {
-   const tc = google.accounts.oauth2.initTokenClient({client_id:S.settings.driveClientId, scope:'https://www.googleapis.com/auth/drive.appdata',
+   const tc = google.accounts.oauth2.initTokenClient({client_id:clientId(), scope:'https://www.googleapis.com/auth/drive.appdata',
      callback: r => { if (r.error) return rej(new Error(r.error)); token = r.access_token; tokenExp = now() + (+r.expires_in||3600)*1000; res(token); },
      error_callback: e => rej(new Error(e && e.type ? e.type : 'Google sign-in was closed'))});
    tc.requestAccessToken();
@@ -346,7 +352,7 @@ async function syncNow(interactive){
  } catch(e) { setSyncStatus('Not synced: ' + e.message); }
  finally { syncing = false; }
 }
-function schedulePush(){ if (!S.settings.driveClientId || !hasToken() || !navigator.onLine) return; clearTimeout(pushTimer); pushTimer = setTimeout(() => syncNow(false), 4000); }
+function schedulePush(){ if (!clientId() || !hasToken() || !navigator.onLine) return; clearTimeout(pushTimer); pushTimer = setTimeout(() => syncNow(false), 4000); }
 async function shareBackup(){
  const data = JSON.stringify(S, null, 1), name = `improvement-plan-backup-${key(TODAY)}.json`, file = new File([data], name, {type:'application/json'});
  if (navigator.canShare && navigator.canShare({files:[file]})) { try { await navigator.share({files:[file], title:'Improvement plan backup'}); return; } catch(e){ if (e.name === 'AbortError') return; } }
@@ -847,32 +853,18 @@ function renderPlan(){
  <div class="row" style="margin-bottom:12px"><span class="small">From</span><input type="date" data-set="nextCourseFrom" value="${esc(SET('nextCourseFrom'))}"><span class="small">Time</span>${tm('classStart')}<span>to</span>${tm('classEnd')}</div>
  <div class="row" style="margin-bottom:12px"><span class="small">Class days</span>${days('classDays', 7)}</div>
  <div class="row"><span class="small">Online days</span>${days('classOnline', 7)}</div></div>`;
- let ghMsg = ''; try { ghMsg = localStorage.getItem(KEY + '-ghsync') || ''; } catch(e) {}
- h = `<div class="card"><h2>Account</h2><p class="small" style="margin-top:0">${SETUP ? `Signed in with GitHub. Plan: <b>${esc(SETUP.name || 'your plan')}</b>, stored in your private <code>plan-data</code> repo with your progress. Edit <code>setup.json</code> there to change the plan on every device.` : 'Not signed in.'}</p>
- <p class="small" id="ghstatus">${esc(ghMsg)}</p>
- <div class="row">${SETUP ? '<button class="btn primary" data-act="ghsync">Sync now</button><button class="btn" data-act="lock">Sign out</button>' : '<button class="btn primary" data-act="show-lock">Sign in with GitHub</button>'}</div></div>` + h;
+ let syncMsg = ''; try { syncMsg = localStorage.getItem(KEY+'-sync') || ''; } catch(e){}
+ h = `<div class="card"><h2>Account</h2><p class="small" style="margin-top:0">${SETUP ? `Signed in with Google. Plan: <b>${esc(SETUP.name || 'your plan')}</b>. Your plan and progress sync to a hidden app folder in your Google Drive.` : 'Not signed in.'}</p>
+ <p class="small" id="syncstatus">${esc(syncMsg)}</p>
+ <div class="row">${SETUP ? '<button class="btn primary" data-act="sync">Sync now</button><button class="btn" data-act="lock">Sign out</button>' : '<button class="btn primary" data-act="show-lock">Sign in with Google</button>'}</div></div>` + h;
  h += `<div class="card"><h2>Other</h2>
  <div class="row" style="margin-bottom:10px"><label style="margin:0">Body weight <input class="n" type="number" data-weight value="${esc(S.settings.weight)}"> kg</label><span class="muted small">for the protein target</span></div>
  <div class="row"><button class="btn" data-act="reset">Reset all data</button></div></div>`;
- let syncMsg = ''; try { syncMsg = localStorage.getItem(KEY+'-sync') || ''; } catch(e){}
- h += `<div class="card"><h2>Google Drive</h2>
- <p class="small">Your progress lives on this device and, if you connect it, in a hidden app folder in <b>your own Google Drive</b>. Nothing goes to any other server.</p>
- <h3>Option 1: backup file (no setup)</h3>
- <div class="row"><button class="btn primary" data-act="share">Save backup to Drive</button><label class="btn">Load backup from Drive<input type="file" accept=".json,application/json" data-act="import" class="hide"></label></div>
- <p class="muted small">On Android, "Save" opens the share menu: pick Drive. "Load" opens the file picker: pick Drive, then the newest backup. Loading merges with what's on this device; the newest change wins.</p>
- <h3>Option 2: automatic sync</h3>
- <div class="row"><input type="text" style="flex:1;min-width:220px" placeholder="Google OAuth client ID (...apps.googleusercontent.com)" data-clientid value="${esc(S.settings.driveClientId)}"><button class="btn primary" data-act="sync">Connect &amp; sync</button></div>
- <p class="small" id="syncstatus">${esc(syncMsg)}</p>
- <details><summary>One-time setup (about 10 minutes, free)</summary><ol class="small">
- <li>Go to console.cloud.google.com and create a project, e.g. "Improvement Plan".</li>
- <li>APIs &amp; Services &gt; Library: enable the <b>Google Drive API</b>.</li>
- <li>OAuth consent screen: choose External, fill in the app name and your email, and add yourself as a test user.</li>
- <li>Credentials &gt; Create credentials &gt; OAuth client ID &gt; Web application. Under Authorised JavaScript origins add the address this app is hosted at, <code>https://gandhi-taha.github.io</code> (no path).</li>
- <li>Copy the client ID, paste it above, and tap Connect &amp; sync. Grant access to "app data" only. This app cannot see your other Drive files.</li>
- <li>Do the same Connect on your phone. After that, changes sync a few seconds after you make them, and the Sync button at the top pulls the latest.</li></ol></details></div>`;
+ h += `<div class="card"><h2>Backup file</h2>
+ <div class="row"><button class="btn" data-act="share">Save a backup</button><label class="btn">Load a backup<input type="file" accept=".json,application/json" data-act="import" class="hide"></label></div>
+ <p class="muted small">Syncing to Google Drive happens automatically while you're signed in. A backup file is an extra copy; loading one merges it with this device, newest change wins.</p></div>`;
  h += `<div class="card"><h2>Install on Android</h2><ol class="small">
- <li>Host this folder on GitHub Pages: a public repo, upload the files, then Settings &gt; Pages &gt; deploy from the main branch. Your data is not in the repo; it stays on your devices and in your Drive.</li>
- <li>On your phone, open the Pages address in Chrome, then menu &gt; <b>Add to Home screen</b> (or "Install app").</li>
+ <li>On your phone, open gandhi-taha.github.io/plan in Chrome, then menu &gt; <b>Add to Home screen</b> (or "Install app").</li>
  <li>It opens full-screen like an app and works offline. Sync when you're back online.</li></ol></div>`;
  document.getElementById('plan').innerHTML = h;
 }
@@ -924,7 +916,7 @@ function renderGuide(){
 /* ---------- events ---------- */
 function renderAll(){
  renderHeader();
- const sb = document.getElementById('syncbtn'); if (sb) sb.style.display = S.settings.driveClientId ? 'inline-block' : 'none';
+ const sb = document.getElementById('syncbtn'); if (sb) sb.style.display = clientId() && SETUP ? 'inline-block' : 'none';
  ({today:renderToday, planner:renderPlanner, tracker:renderTracker, week:renderWeek, progress:renderProgress, plan:renderPlan, guide:renderGuide})[tab]();
 }
 const CYCLE = v => v === undefined ? 1 : v === 1 ? 0.5 : v === 0.5 ? 0 : undefined;
@@ -961,7 +953,7 @@ document.addEventListener('click', e => {
  }
  if (ds.act === 'addgoal') { S.goals.push({id:uid(), area:'Personal', t:'New goal', due:key(addDays(TODAY,30)), auto:null, target:null, status:'Not started', pct:0, done:false, u:now()}); goalFilter = 'open'; save(); renderAll(); const inp = document.querySelectorAll('table.goals input[type=text]'); const last = [...inp].find(i => i.value === 'New goal'); if (last) { last.focus(); last.select(); } return; }
  if (ds.act === 'share') return shareBackup();
- if (ds.act === 'sync') { const ci = document.querySelector('[data-clientid]'); if (ci && ci.value.trim() !== S.settings.driveClientId) { S.settings.driveClientId = ci.value.trim(); saveLocal(); } return syncNow(true); }
+ if (ds.act === 'sync') { return syncNow(true); }
  if (ds.act === 'reset') { if (confirm('Delete all your check-ins, lifts, tasks, goals and reviews on this device? Your Google Drive copy is not touched. This cannot be undone.')) { S = fresh(); saveLocal(); renderAll(); } }
 });
 document.addEventListener('change', e => {
@@ -1155,84 +1147,49 @@ document.addEventListener('keydown', e => {
 });
 ensureLiveUI();
 
-/* sign-in with GitHub: the plan and progress live in a private repo. A fine-grained token
-   with access to that one repo is the key; it is stored only on this device. */
-const GH = {owner:'gandhi-taha', repo:'plan-data'};
-const TOK = KEY + '-gh';
-const ghTok = () => { try { return localStorage.getItem(TOK) || ''; } catch(e) { return ''; } };
-const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, '')), c => c.charCodeAt(0)));
-const b64enc = s => { const u = new TextEncoder().encode(s); let bin = ''; for (let i = 0; i < u.length; i += 0x8000) bin += String.fromCharCode(...u.subarray(i, i + 0x8000)); return btoa(bin); };
-async function ghApi(path, opts = {}, tok = ghTok()){
- return fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/${path}`, {cache:'no-store', ...opts, headers:{Authorization:`Bearer ${tok}`, Accept:'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28', ...(opts.headers || {})}});
-}
-async function ghRead(file, tok){
- const r = await ghApi(`contents/${file}`, {}, tok);
- if (r.status === 404) return null;
- if (r.status === 401 || r.status === 403) throw new Error('GitHub did not accept this token, or it has no access to the plan-data repo.');
- if (!r.ok) throw new Error(`GitHub error ${r.status}`);
- const j = await r.json(); return {sha:j.sha, data:JSON.parse(b64dec(j.content))};
-}
-async function ghWrite(file, data, sha, msg){
- const r = await ghApi(`contents/${file}`, {method:'PUT', body:JSON.stringify({message:msg, content:b64enc(JSON.stringify(data)), ...(sha ? {sha} : {})})});
- if (r.status === 409) throw new Error('conflict');
- if (!r.ok) throw new Error(`save failed (${r.status})`);
-}
-const ghStatus = t => { try { localStorage.setItem(KEY + '-ghsync', t); } catch(e) {} const el = document.getElementById('ghstatus'); if (el) el.textContent = t; };
-let ghBusy = false, ghTimer = null;
-async function ghSync(tries = 2){
- if (!ghTok() || ghBusy || !navigator.onLine) return; ghBusy = true;
- try {
-   const cur = await ghRead('progress.json');
-   if (cur) S = merge(S, cur.data);
-   const {setup, ...rest} = S;
-   await ghWrite('progress.json', rest, cur && cur.sha, `Progress ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`);
-   saveLocal(); ghStatus('Synced with GitHub at ' + new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}));
- } catch(e) {
-   if (e.message === 'conflict' && tries > 0) { ghBusy = false; return ghSync(tries - 1); }
-   ghStatus('Not synced: ' + e.message);
- } finally { ghBusy = false; }
-}
-const ghSoon = () => { if (!ghTok()) return; clearTimeout(ghTimer); ghTimer = setTimeout(ghSync, 8000); };
-async function ghRefresh(){
- try {
-   const s = await ghRead('setup.json'); if (!s) return;
-   const strip = o => JSON.stringify({...(o || {}), u:0});
-   if (strip(s.data) !== strip(S.setup)) { S.setup = {...s.data, u:now()}; saveLocal(); return location.reload(); }
-   await ghSync();
-   renderAll();
- } catch(e) { ghStatus('Not synced: ' + e.message); }
-}
+/* sign-in with Google: the plan and progress live in a hidden app folder in your own Google Drive.
+   The app can only see its own folder, and only your Google account can open it. */
 function showLock(){
  let el = document.getElementById('lock'); if (el) return el.classList.remove('hide');
  el = document.createElement('div'); el.id = 'lock'; el.className = 'lock';
- el.innerHTML = `<form class="lock-in" id="lock-form"><img src="icon-192.png" alt="" width="56" height="56"><h1>Private planner</h1><p>Sign in with GitHub to open your plan on this device.</p>
- <a class="btn" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">1. Create a GitHub token</a>
- <p class="lock-note" style="text-align:left">Repository access: <b>Only select repositories → plan-data</b>. Permissions: <b>Contents → Read and write</b>. Pick an expiry you're happy with, then copy the token.</p>
- <input type="password" id="lock-pass" autocomplete="off" placeholder="2. Paste the token here" required>
- <button class="btn primary" type="submit" id="lock-go">Sign in with GitHub</button><p class="lock-err" id="lock-err" role="alert"></p>
- <p class="lock-note">The token stays on this device. Without access to the private repo there is nothing to see.</p><a class="lock-home" href="../">gandhi-taha.github.io</a></form>`;
+ el.innerHTML = `<div class="lock-in"><img src="icon-192.png" alt="" width="56" height="56"><h1>Private planner</h1><p>Sign in to open your plan on this device.</p>
+ <button class="gbtn" id="g-go" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Sign in with Google</button>
+ <div id="g-import" class="hide" style="width:100%"><p class="small">First sign-in on this account. Choose your plan file (<code>private-plan-setup.json</code>) once; after that every device gets it from your Drive.</p><label class="btn" style="width:100%;justify-content:center">Choose plan file<input type="file" accept=".json,application/json" id="g-file" class="hide"></label></div>
+ <p class="lock-err" id="lock-err" role="alert"></p><p class="lock-note">Your plan is stored in your own Google Drive. Nobody else can open it.</p><a class="lock-home" href="../">gandhi-taha.github.io</a></div>`;
  document.body.appendChild(el);
- el.querySelector('#lock-form').addEventListener('submit', async e => {
-   e.preventDefault(); const btn = el.querySelector('#lock-go'), err = el.querySelector('#lock-err'), tok = el.querySelector('#lock-pass').value.trim();
-   btn.disabled = true; btn.textContent = 'Signing in...'; err.textContent = '';
+ const err = el.querySelector('#lock-err'), btn = el.querySelector('#g-go');
+ if (!clientId()) { btn.disabled = true; err.textContent = 'Sign-in is not set up yet.'; return; }
+ btn.addEventListener('click', async () => {
+   btn.disabled = true; err.textContent = '';
    try {
-     const setup = await ghRead('setup.json', tok); if (!setup) throw new Error('Signed in, but setup.json is missing from the plan-data repo.');
-     localStorage.setItem(TOK, tok);
-     const prog = await ghRead('progress.json', tok); if (prog) S = merge(S, prog.data);
-     S.setup = {...setup.data, u:now()}; saveLocal(); location.reload();
-   } catch(x) { err.textContent = x.message; btn.disabled = false; btn.textContent = 'Sign in with GitHub'; }
+     const t = await getToken(true), f = await driveFind(t);
+     if (f) S = merge(S, await driveRead(t, f.id));
+     if (S.setup) { await driveWrite(t, f && f.id, S); saveLocal(); return location.reload(); }
+     el.querySelector('#g-import').classList.remove('hide'); btn.classList.add('hide');
+   } catch(x) { err.textContent = x.message; btn.disabled = false; }
  });
- setTimeout(() => el.querySelector('#lock-pass').focus(), 50);
+ el.querySelector('#g-file').addEventListener('change', e => {
+   const file = e.target.files[0]; if (!file) return;
+   const r = new FileReader();
+   r.onload = async () => {
+     try {
+       const d = JSON.parse(r.result); if (!d || !Array.isArray(d.phases)) throw new Error('That is not a plan file.');
+       S.setup = {...d, u:now()}; saveLocal();
+       const t = await getToken(true), f = await driveFind(t); await driveWrite(t, f && f.id, S); location.reload();
+     } catch(x) { err.textContent = x.message; }
+   };
+   r.readAsText(file);
+ });
 }
 document.addEventListener('click', e => {
- const t = e.target.closest('[data-act="lock"],[data-act="show-lock"],[data-act="ghsync"]'); if (!t) return;
+ const t = e.target.closest('[data-act="lock"],[data-act="show-lock"]'); if (!t) return;
  if (t.dataset.act === 'show-lock') return showLock();
- if (t.dataset.act === 'ghsync') { ghStatus('Syncing...'); return ghSync(); }
- if (confirm('Sign out on this device? Your plan and progress are removed from this device; they stay in your private GitHub repo.')) { const go = () => { try { [KEY, KEY + '-sync', KEY + '-ghsync', TOK].forEach(k => localStorage.removeItem(k)); } catch(x) {} location.reload(); }; ghTok() ? ghSync().finally(go) : go(); }
+ if (!confirm('Sign out on this device? Your plan and progress are removed from this device. They stay in your Google Drive.')) return;
+ const go = () => { try { [KEY, KEY + '-sync'].forEach(k => localStorage.removeItem(k)); } catch(x) {} try { if (token && window.google) google.accounts.oauth2.revoke(token, () => {}); } catch(x) {} location.reload(); };
+ hasToken() ? syncNow(false).finally(go) : go();
 });
-window.addEventListener('online', ghSoon);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') ghSync(); });
-if (!SETUP || !ghTok()) showLock(); else ghRefresh();
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && hasToken()) syncNow(false); });
+if (!SETUP) showLock();
 
 renderAll();
 </script>
