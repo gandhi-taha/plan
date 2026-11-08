@@ -431,7 +431,8 @@ details.sec.has-now{border-color:var(--accent)}
 .fr-bar{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line-2)}
 .fr-bar b{color:var(--k-french)}
 .fr-bar span{flex:1;font-size:12.5px;color:var(--ink-3)}
-.fr-slot{height:min(70vh,640px)}
+.fr-wrap{margin:6px 0 4px}
+.fr-slot{height:min(68vh,620px)}
 .fr-frame{width:100%;height:100%;border:0;display:block}
 .fr-wrap.full{position:fixed;inset:0;z-index:70;border-radius:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
 .fr-wrap.full .fr-slot{flex:1;height:auto}
@@ -922,11 +923,11 @@ function renderToday(){
      h += `<div class="sb k-${r.kind} ${done ? 'done' : now ? 'now' : miss ? 'missed' : ''}"><button class="sb-row" data-sbx="${r.id}" aria-expanded="${ex}"><span class="sb-time">${hm(r.s)}</span><span class="sb-main"><span class="sb-title">${esc(r.title)}</span><span class="sb-meta">${meta}</span></span><span class="sb-chev"></span></button><button class="check ${stateClass(v)}" data-check="${r.id}" aria-label="${stateLabel(v)}"><span class="lab">${v === undefined ? '' : stateLabel(v)}</span><span class="dot"></span></button>${now ? `<i class="sb-prog" style="width:${Math.round(100*(m - r.s)/(r.e - r.s))}%"></i>` : ''}</div>`;
      if (ex) {
        h += `<div class="sb-more" style="--bar:var(--k-${r.kind})"><p class="detail">${esc(r.detail)}</p><p class="min">${esc(r.min)}</p>`;
-       if (r.id === 'french') h += `<div class="fr-wrap" id="fr-wrap"><div class="fr-bar"><b>Français</b><span id="fr-live">${tracked ? fmtDur(tracked) + ' so far' : 'Time here counts as French'}</span><button class="btn" data-frfull>Full screen</button></div><div class="fr-slot" id="fr-slot"></div></div>`;
-       else if (!done) h += `<div class="row"><button class="btn primary" data-focus="${r.id}" data-k="${k}">Start focus timer</button></div>`;
+       if (r.id !== 'french' && !done) h += `<div class="row"><button class="btn primary" data-focus="${r.id}" data-k="${k}">Start focus timer</button></div>`;
        if (r.workout) h += workoutTable(r.workout, k, isDeload(d));
        h += `</div>`;
      }
+     if (r.id === 'french' && !cls) h += `<div class="fr-wrap" id="fr-wrap"><div class="fr-bar"><b>Français</b><span id="fr-live">${tracked ? fmtDur(tracked) + ' so far' : 'Time in the course counts as French'}</span><button class="btn" data-frfull>Full screen</button></div><div class="fr-slot" id="fr-slot"></div></div>`;
    });
    h += `</div></details>`;
  });
@@ -1275,7 +1276,7 @@ function renderNow(){
  const cur = tl.filter(x => x.s <= m && m < x.e), main = cur.find(x => x.id && !x.done) || cur.find(x => !x.id) || cur[0];
  const next = tl.find(x => x.s > m && !(x.id && x.done)), open = habitsFor(d).filter(h => !((checks[h.id]||0) > 0));
  let title, sub, pct = null, act = '';
- if (main) { pct = (m - main.s)/(main.e - main.s); title = main.label; sub = `${fmtDur(main.e - m)} left, until ${hm(main.e)}`; if (main.id && !main.done) act = main.id === 'french' ? `<button class="btn primary" data-sbx="french" aria-expanded="false">Open French</button>` : `<button class="btn primary" data-focus="${main.id}" data-k="${k}">Start focus</button>`; }
+ if (main) { pct = (m - main.s)/(main.e - main.s); title = main.label; sub = `${fmtDur(main.e - m)} left, until ${hm(main.e)}`; if (main.id && !main.done) act = main.id === 'french' ? `<button class="btn primary" data-frgo>Open French</button>` : `<button class="btn primary" data-focus="${main.id}" data-k="${k}">Start focus</button>`; }
  else if (next) { title = `Next: ${next.label}`; sub = `in ${fmtDur(next.s - m)}, at ${hm(next.s)}`; if (next.id) act = `<button class="btn" data-focus="${next.id}" data-k="${k}">Start now</button>`; }
  else if (m >= T(SET('bed')) - 30) { title = 'Wind down'; sub = open.length ? `Tick what you did today (${open.length} still open), then sleep.` : 'Everything is done. Good day.'; }
  else { title = open.length ? 'Free time' : 'All done for today'; sub = open.length ? `Still open: ${open.map(h => HNAME[h.id]).join(', ')}` : 'Enjoy the evening.'; }
@@ -1554,7 +1555,8 @@ function outlook(d){
 }
 document.addEventListener('toggle', e => { const t = e.target; if (t.classList && t.classList.contains('sec')) secOpen[t.dataset.sec] = t.open; }, true);
 document.addEventListener('click', e => {
- const t = e.target.closest('[data-sbx],[data-light],[data-frfull]'); if (!t) return;
+ const t = e.target.closest('[data-sbx],[data-light],[data-frfull],[data-frgo]'); if (!t) return;
+ if (t.hasAttribute('data-frgo')) { const w = document.getElementById('fr-wrap'); if (!w) return; const sec = w.closest('details.sec'); if (sec && !sec.open) { sec.open = true; secOpen[sec.dataset.sec] = true; } mountFrench(); return w.scrollIntoView({behavior:'smooth', block:'start'}); }
  if (t.dataset.sbx) { const ok = `${key(viewDate)}|${t.dataset.sbx}`, cur = t.getAttribute('aria-expanded') === 'true'; sbOpen[ok] = !cur; if (typeof buzz === 'function') buzz(5); return renderAll(); }
  if (t.dataset.light) { const day = touch(getDay(key(viewDate))); day.light = t.dataset.light === '1'; save(); if (typeof buzz === 'function') buzz(10); return renderAll(); }
  if (t.hasAttribute('data-frfull')) { const w = document.getElementById('fr-wrap'); const on = !w.classList.contains('full'); w.classList.toggle('full', on); t.textContent = on ? 'Close' : 'Full screen'; document.body.classList.toggle('noscroll', on); }
@@ -1562,7 +1564,7 @@ document.addEventListener('click', e => {
 // the French app lives in one iframe that is moved, not reloaded, when the page re-renders
 let FR_FRAME = null, FR_TRACK = null;
 function frenchFrame(){
- if (!FR_FRAME) { FR_FRAME = document.createElement('iframe'); FR_FRAME.src = FRENCH_URL; FR_FRAME.title = 'French course'; FR_FRAME.className = 'fr-frame'; FR_FRAME.setAttribute('allow', 'autoplay; clipboard-write; fullscreen'); }
+ if (!FR_FRAME) { FR_FRAME = document.createElement('iframe'); FR_FRAME.src = FRENCH_URL; FR_FRAME.title = 'French course'; FR_FRAME.className = 'fr-frame'; FR_FRAME.setAttribute('allow', 'autoplay; clipboard-write; fullscreen'); FR_FRAME.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-downloads'); FR_FRAME.setAttribute('referrerpolicy', 'same-origin'); }
  return FR_FRAME;
 }
 const moveInto = (parent, node) => { if (node.isConnected && parent.moveBefore) { try { return parent.moveBefore(node, null); } catch(e) {} } return parent.appendChild(node); };

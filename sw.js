@@ -1,5 +1,5 @@
 // Offline support: keeps the app shell cached. Your data is never cached here; it lives in the browser and your Google Drive.
-const CACHE = 'improvement-plan-v14';
+const CACHE = 'improvement-plan-v15';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
