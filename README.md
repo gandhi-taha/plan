@@ -11,7 +11,7 @@ A personal planner for study, a side project, the gym and a language course, bui
 
 ## Private by design
 
-The code here is generic. My own plan (dates, classes, goals) is in `vault.json`, encrypted with AES-256-GCM using a key derived from my password (PBKDF2-SHA256, 600,000 rounds). The app asks for the password and decrypts the plan in the browser; the password never leaves the device. Progress stays on the device, with an optional backup file.
+The code here is generic. My own plan (dates, classes, goals) and my progress live in a private repository. The app signs in with a fine-grained GitHub token that can only read and write that one repository, keeps the token on the device, and syncs progress there automatically. Without access to the private repo, the app shows only a sign-in screen.
 
 ## Run it
 
