@@ -154,9 +154,7 @@ table.goals tr.late input[data-gf=due]{color:var(--bad);font-weight:600}
 .task{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line-2)}
 .task.done .tt{text-decoration:line-through;color:var(--ink-3)}
 .task input[type=checkbox]{width:20px;height:20px;accent-color:var(--good);flex:none}
-.task .tt{flex:1;min-width:0}
-.task .tt a{color:inherit;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
-.task .tnote{display:block;font-size:13px;color:var(--ink-3);margin-top:2px}
+.task .tt{flex:1}
 .task .time{min-width:44px}
 .x{border:0;background:none;color:var(--ink-3);cursor:pointer;font-size:18px;padding:0 4px}
 .x:hover{color:var(--bad)}
@@ -959,7 +957,7 @@ function workoutTable(wid, k, deload){
 /* ---------- render: planner ---------- */
 function taskRow(t, k){
  const dn = taskDone(t,k);
- return `<div class="task ${dn ? 'done' : ''}"><input type="checkbox" data-tdone="${t.id}" data-k="${k}" ${dn ? 'checked' : ''}><span class="time">${esc(t.time || '')}</span><span class="tt">${/^https:\/\//.test(t.url || '') ? `<a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.t)}</a>` : esc(t.t)}${t.repeat && t.repeat !== 'none' ? ` <span class="muted small">(${t.repeat})</span>` : ''}${t.note ? `<span class="tnote">${esc(t.note)}</span>` : ''}</span><span class="tag">${esc(t.cat)}</span><button class="x" title="Delete" data-tdel="${t.id}">&times;</button></div>`;
+ return `<div class="task ${dn ? 'done' : ''}"><input type="checkbox" data-tdone="${t.id}" data-k="${k}" ${dn ? 'checked' : ''}><span class="time">${esc(t.time || '')}</span><span class="tt">${esc(t.t)}${t.repeat && t.repeat !== 'none' ? ` <span class="muted small">(${t.repeat})</span>` : ''}</span><span class="tag">${esc(t.cat)}</span><button class="x" title="Delete" data-tdel="${t.id}">&times;</button></div>`;
 }
 let plannerDays = 14;
 function renderPlanner(){
