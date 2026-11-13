@@ -148,6 +148,27 @@ table.goals tr.done input[type=text]{text-decoration:line-through;color:var(--in
 table.goals tr.late td{background:#fdf6f6}
 table.goals tr.late input[data-gf=due]{color:var(--bad);font-weight:600}
 .pbar{display:flex;align-items:center;gap:8px;padding:0 8px;min-width:130px}
+/* the long view: years, risk markers, safety net */
+.yrs{display:grid;gap:10px}
+.yr{border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.yr.now{border-color:var(--accent);background:var(--accent-soft)}
+.yr.past{opacity:.55}
+.yr h3{margin:0 0 8px;font-size:15.5px;font-weight:650;text-transform:none;letter-spacing:0;color:var(--ink);display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.yr h3 small{font-weight:500;color:var(--ink-3);font-size:12.5px} .yr.now h3 span{color:var(--accent-ink)}
+.yr dl{margin:0;display:grid;grid-template-columns:92px 1fr;gap:5px 10px;font-size:13.5px}
+.yr dt{color:var(--ink-3)} .yr dd{margin:0}
+.rk{padding:11px 0;border-top:1px solid var(--line-2)}
+.rk .rt{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.rk .ra{font-size:13px;color:var(--ink-3);margin-top:4px}
+.rk.lv1 .ra{color:var(--warn)} .rk.lv2 .ra{color:var(--bad);font-weight:550}
+.rkb{flex:none;min-width:96px;min-height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:650;color:var(--ink-3);cursor:pointer}
+.rkb.s1{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.rkb.s2{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.facts{margin:0 0 4px;padding:0;list-style:none;font-size:13.5px}
+.facts li{padding:7px 0;border-top:1px solid var(--line-2)} .facts li:first-child{border-top:0}
+.net label{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line-2);margin:0;cursor:pointer}
+.net input[type=checkbox]{width:20px;height:20px;accent-color:var(--good);flex:none;margin-top:1px}
+.net .nd{font-size:13px;color:var(--ink-3)}
 .pbar .bar{flex:1}
 .tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:6px;background:var(--line-2);color:var(--ink-2);font-weight:550}
 /* planner */
@@ -480,10 +501,10 @@ body.noscroll{overflow:hidden}
 <script>
 /* ---------- storage ---------- */
 const KEY = 'improvement-plan-v1';
-function fresh(){ return {v:2, settings:{weight:'', driveClientId:'', u:0}, days:{}, weeks:{}, goals:defaultGoals(), tasks:[]}; }
+function fresh(){ return {v:2, settings:{weight:'', driveClientId:'', u:0}, days:{}, weeks:{}, goals:defaultGoals(), tasks:[], marks:{}}; }
 const SETUP = (() => { try { const r = JSON.parse(localStorage.getItem('improvement-plan-v1')); return (r && r.setup) || null; } catch(e) { return null; } })();
 const U = SETUP || {};
-function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) { if (!s.goals || !s.goals.length) s.goals = defaultGoals(); if (!s.tasks) s.tasks = []; s.v = 2; return s; } } catch(e){} return fresh(); }
+function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) { if (!s.goals || !s.goals.length) s.goals = defaultGoals(); if (!s.tasks) s.tasks = []; if (!s.marks) s.marks = {}; s.v = 2; return s; } } catch(e){} return fresh(); }
 function saveLocal(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
 function save(){ saveLocal(); schedulePush(); if (typeof ghSoon === 'function') ghSoon(); }
 const now = () => Date.now();
@@ -496,7 +517,7 @@ function merge(a, b){
  const sa = a.settings || {}, sb = b.settings || {};
  const settings = (sb.u||0) > (sa.u||0) ? {...sb, driveClientId: sa.driveClientId || sb.driveClientId} : sa;
  const setup = ((b.setup && b.setup.u) || 0) > ((a.setup && a.setup.u) || 0) ? b.setup : a.setup;
- return {v:2, settings, setup, days:mergeMaps(a.days,b.days), weeks:mergeMaps(a.weeks,b.weeks), goals:mergeLists(a.goals,b.goals), tasks:mergeLists(a.tasks,b.tasks)};
+ return {v:2, settings, setup, days:mergeMaps(a.days,b.days), weeks:mergeMaps(a.weeks,b.weeks), goals:mergeLists(a.goals,b.goals), tasks:mergeLists(a.tasks,b.tasks), marks:mergeMaps(a.marks,b.marks)};
 }
 
 /* ---------- Google Drive sync (your own Drive, hidden app folder, no other service) ---------- */
@@ -854,6 +875,7 @@ function renderToday(){
  if (key(d) === key(TODAY)) h += `<div id="nowcard" class="card now"></div>`;
  const alerts = [];
  if (p.note) alerts.push({c:'info', t:p.note});
+ if (key(d) === key(TODAY)) RISKS.filter(r => mark('risk:' + r.id) === 2).forEach(r => alerts.push({c:'bad', t:`Risk marker on: ${r.t}. Do: ${r.act}`}));
  if (d < START) alerts.push({c:'info', t:`The plan starts on ${fmtLong(START)}. Until then: read the "How to" tab, pack your gym bag, and put your study blocks in your calendar.`});
  const miss = key(d) === key(TODAY) ? missedYesterday(d) : [];
  if (miss.length) alerts.push({c:'bad', t:`Never miss twice: you missed ${miss.join(', ')} yesterday. Today at least the minimum version.`});
@@ -1069,7 +1091,8 @@ function spark(series){
  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent)"/></svg>`;
 }
 function renderProgress(){
- let h = `<div class="card"><h2>Streaks</h2><div class="grid">${['gym','study','uni','french'].map(id => `<div class="stat"><div class="muted small">${HNAME[id]}</div><div class="v">${streak(id)} days</div></div>`).join('')}</div><p class="muted small">A streak counts planned days done (minimum version counts). Unplanned days don't break it.</p></div>`;
+ let h = longView();
+ h += `<div class="card"><h2>Streaks</h2><div class="grid">${['gym','study','uni','french'].map(id => `<div class="stat"><div class="muted small">${HNAME[id]}</div><div class="v">${streak(id)} days</div></div>`).join('')}</div><p class="muted small">A streak counts planned days done (minimum version counts). Unplanned days don't break it.</p></div>`;
  h += `<div class="card"><h2>Consistency, last 10 weeks</h2><div class="heat"><div class="lab"></div>${DOW.map(n => `<div class="lab">${n[0]}</div>`).join('')}`;
  const m0 = addDays(monday(TODAY), -63);
  for (let w = 0; w < 10; w++){
@@ -1085,6 +1108,35 @@ function renderProgress(){
  h += focusCard();
  if (S.settings.weight) h += `<div class="card"><h2>Nutrition target</h2><p>Protein about <b>${Math.round(1.6*S.settings.weight)} g a day</b> (1.6 g per kg at ${esc(S.settings.weight)} kg), 2-3 L water, 8,000+ steps.</p></div>`;
  document.getElementById('progress').innerHTML = h;
+}
+
+/* ---------- the long view: years, risk markers, safety net (text comes from your setup) ---------- */
+const ROAD = U.roadmap || null, RISKS = U.risks || [], NET = U.safetyNet || null;
+const RISK_LABEL = ['Quiet', 'Watch', 'Happening'];
+const mark = id => (S.marks && S.marks[id] && S.marks[id].v) || 0;
+function setMark(id, v){ if (!S.marks) S.marks = {}; S.marks[id] = {v, u:now()}; save(); renderAll(); }
+function longView(){
+ let h = '';
+ if (ROAD && ROAD.years && ROAD.years.length) {
+   const k = key(TODAY), a = parse(ROAD.years[0].from), b = parse(ROAD.years[ROAD.years.length-1].to);
+   const pct = Math.max(0, Math.min(100, 100 * daysBetween(a, TODAY) / Math.max(1, daysBetween(a, b))));
+   h += `<div class="card"><h2>${esc(ROAD.title || 'Your next years')}</h2>${ROAD.aim ? `<p class="small" style="margin-top:0">${esc(ROAD.aim)}</p>` : ''}
+   <div class="spread small muted"><span>${a.toLocaleDateString('en-GB',{month:'short', year:'numeric'})}</span><span>${Math.round(pct)}% of the way</span><span>${b.toLocaleDateString('en-GB',{month:'short', year:'numeric'})}</span></div><div class="bar" style="margin:6px 0 12px"><i style="width:${pct}%"></i></div>
+   <div class="yrs">${ROAD.years.map(y => { const st = k > y.to ? 'past' : k >= y.from ? 'now' : ''; return `<div class="yr ${st}"><h3><span>${esc(y.name)}${st === 'now' ? ' &larr; now' : ''}</span><small>${esc(y.span || '')}</small></h3><dl>${(y.rows || []).map(r => `<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl>${y.note ? `<p class="small muted" style="margin:8px 0 0">${esc(y.note)}</p>` : ''}</div>`; }).join('')}</div></div>`;
+ }
+ if (RISKS.length) {
+   const on = RISKS.filter(r => mark('risk:' + r.id) === 2).length, watch = RISKS.filter(r => mark('risk:' + r.id) === 1).length;
+   h += `<div class="card"><div class="spread"><h2 style="margin:0">Risk markers</h2><span class="tag">${on ? on + ' happening' : watch ? watch + ' to watch' : 'all quiet'}</span></div><p class="small muted" style="margin-bottom:0">Tap a marker when you see its signal: quiet, watch, happening.</p>${RISKS.map(r => { const v = mark('risk:' + r.id); return `<div class="rk lv${v}"><div class="rt"><div><b>${esc(r.t)}</b>${r.when ? ` <span class="muted small">${esc(r.when)}</span>` : ''}</div><button class="rkb s${v}" data-risk="${esc(r.id)}">${RISK_LABEL[v]}</button></div><div class="ra">${v ? 'Do: ' : 'If it happens: '}${esc(r.act)}</div></div>`; }).join('')}</div>`;
+ }
+ if (NET) {
+   const items = NET.items || [], done = items.filter(i => mark('net:' + i.id)).length;
+   h += `<div class="card net"><div class="spread"><h2 style="margin:0">Safety net</h2>${items.length ? `<span class="tag">${done} of ${items.length} in place</span>` : ''}</div>`;
+   if (NET.facts && NET.facts.length) h += `<h3>What you have today</h3><ul class="facts">${NET.facts.map(f => `<li><b>${esc(f[0])}</b> ${esc(f[1])}</li>`).join('')}</ul>`;
+   if (items.length) h += `<h3>What you build</h3>${items.map(i => `<label><input type="checkbox" data-net="${esc(i.id)}" ${mark('net:' + i.id) ? 'checked' : ''}><span>${esc(i.t)}${i.d ? `<div class="nd">${esc(i.d)}</div>` : ''}</span></label>`).join('')}`;
+   if (NET.note) h += `<p class="small muted" style="margin:10px 0 0">${esc(NET.note)}</p>`;
+   h += `</div>`;
+ }
+ return h;
 }
 
 /* ---------- render: plan & settings ---------- */
@@ -1202,7 +1254,7 @@ function cycleCheck(k, h){ if (typeof buzz === 'function') buzz(12); const day =
 const goalById = id => S.goals.find(g => g.id === id);
 const taskById = id => S.tasks.find(t => t.id === id);
 document.addEventListener('click', e => {
- const t = e.target.closest('[data-tab],[data-goto],[data-goto-day],[data-nav],[data-wnav],[data-mnav],[data-check],[data-cell],[data-energy],[data-gym],[data-act],[data-pdays],[data-gfilter],[data-gdel],[data-tdel]');
+ const t = e.target.closest('[data-tab],[data-goto],[data-goto-day],[data-nav],[data-wnav],[data-mnav],[data-check],[data-cell],[data-energy],[data-gym],[data-act],[data-pdays],[data-gfilter],[data-gdel],[data-tdel],[data-risk]');
  if (!t) return; const ds = t.dataset;
  if (ds.tab) return showTab(ds.tab);
  if (ds.goto) return showTab(ds.goto);
@@ -1214,6 +1266,7 @@ document.addEventListener('click', e => {
  if (ds.cell) return cycleCheck(ds.k, ds.cell);
  if (ds.energy) { const day = touch(getDay(key(viewDate))); day.energy = day.energy === +ds.energy ? 0 : +ds.energy; save(); return renderAll(); }
  if (ds.gym) { S.settings.gymTime = ds.gym; touch(S.settings); save(); return renderAll(); }
+ if (ds.risk) { const id = 'risk:' + ds.risk; if (typeof buzz === 'function') buzz(10); return setMark(id, (mark(id) + 1) % 3); }
  if (ds.pdays) { plannerDays = +ds.pdays; return renderAll(); }
  if (ds.gfilter) { goalFilter = ds.gfilter; return renderAll(); }
  if (ds.gdel) { const g = goalById(ds.gdel); if (g && confirm(`Delete the goal "${g.t}"?`)) { g.del = true; touch(g); save(); renderAll(); } return; }
@@ -1232,6 +1285,7 @@ document.addEventListener('change', e => {
  const t = e.target, ds = t.dataset;
  if (ds.lift) { const day = touch(getDay(key(viewDate))), arr = day.lifts[ds.lift] || (day.lifts[ds.lift] = []); const s = arr[+ds.i] || (arr[+ds.i] = {}); s[ds.k] = t.value; save(); if (ds.k === 'r' && t.value && key(viewDate) === key(TODAY)) startRest(ds.lift, +ds.i); return; }
  if (ds.f) { touch(getDay(key(viewDate)))[ds.f] = t.value; save(); if (ds.f === 'sleep') renderAll(); return; }
+ if (ds.net !== undefined) return setMark('net:' + ds.net, t.checked ? 1 : 0);
  if (ds.b3 !== undefined) { const w = touch(weekData(weekView)); w.big3[+ds.b3].done = t.checked; save(); return; }
  if (ds.b3t !== undefined) { const w = touch(weekData(weekView)); w.big3[+ds.b3t].t = t.value; save(); return; }
  if (ds.rv) { const w = touch(weekData(weekView)); w.review[ds.rv] = t.value; save(); return; }
